@@ -1,0 +1,41 @@
+批量下载汇总报告
+================================================================================
+生成时间: 2026-02-19 04:05:15
+总搜索关键词数: 31
+总搜索到文献: 50473 篇
+新文献（去重后）: 35236 篇
+当前总DOI记录: 5260 个
+
+搜索关键词列表:
+--------------------------------------------------------------------------------
+1. speech disorder intervention (言语障碍干预) - 最大结果数: 2000
+2. language disorder intervention (语言障碍干预) - 最大结果数: 2000
+3. communication disorder intervention (沟通障碍干预) - 最大结果数: 1500
+4. speech disorder treatment (言语障碍治疗) - 最大结果数: 2000
+5. language disorder treatment (语言障碍治疗) - 最大结果数: 2000
+6. aphasia assessment (失语症评估) - 最大结果数: 1500
+7. aphasia intervention (失语症干预) - 最大结果数: 1500
+8. aphasia treatment (失语症治疗) - 最大结果数: 1500
+9. dysarthria assessment (构音障碍评估) - 最大结果数: 1000
+10. dysarthria intervention (构音障碍干预) - 最大结果数: 1000
+11. apraxia speech (言语失用症) - 最大结果数: 1000
+12. child speech disorder (儿童言语障碍) - 最大结果数: 2000
+13. child language disorder (儿童语言障碍) - 最大结果数: 2000
+14. developmental language disorder (发展性语言障碍) - 最大结果数: 1500
+15. speech rehabilitation (言语康复) - 最大结果数: 1500
+16. language rehabilitation (语言康复) - 最大结果数: 1500
+17. speech disorder training (言语障碍训练) - 最大结果数: 1000
+18. language disorder training (语言障碍训练) - 最大结果数: 1000
+19. speech therapy (言语治疗) - 最大结果数: 3000
+20. language therapy (语言治疗) - 最大结果数: 3000
+21. speech language pathology (言语语言病理学) - 最大结果数: 2500
+22. communication disorder therapy (沟通障碍治疗) - 最大结果数: 1500
+23. speech disorder diagnosis (言语障碍诊断) - 最大结果数: 1500
+24. language disorder diagnosis (语言障碍诊断) - 最大结果数: 1500
+25. speech disorder screening (言语障碍筛查) - 最大结果数: 1000
+26. language disorder screening (语言障碍筛查) - 最大结果数: 1000
+27. language disorder assessment (语言障碍评估) - 最大结果数: 2000
+28. communication disorder assessment (沟通障碍评估) - 最大结果数: 1500
+29. speech disorder evaluation (言语障碍评价) - 最大结果数: 1500
+30. language disorder evaluation (语言障碍评价) - 最大结果数: 1500
+31. speech disorder assessment (言语障碍评估) - 最大结果数: 2000
