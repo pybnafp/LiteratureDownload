@@ -1,0 +1,24 @@
+# 忽略所有 zip 文件（解决你的大文件问题）
+*.zip
+
+# 忽略IDE配置目录（如PyCharm的.idea）
+.idea/
+
+# 忽略Python编译生成的__pycache__目录及.pyc文件
+__pycache__/
+*.pyc
+
+# 忽略.specstory目录
+.specstory/
+
+# 忽略.cursorindexingignore文件
+.cursorindexingignore
+
+# 忽略.cursorignore文件
+.cursorignore
+
+# 忽略.cursorrules文件
+.cursorrules
+
+# 忽略.cursorignore文件
+.cursorignore
