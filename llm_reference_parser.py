@@ -44,7 +44,7 @@ class LLMReferenceParser:
 
     def __init__(
         self,
-        api_key: Optional[str] = "sk-705575b79f854ea6a25106d794b2b5d2",
+        api_key: Optional[str] = None,
         model: str = "qwen-turbo",
         cache_path: Optional[str] = None,
     ):
@@ -54,7 +54,7 @@ class LLMReferenceParser:
         :param cache_path: 可选，LLM 解析结果缓存 CSV 的路径（如 literature_pdfs/llm_reference_cache.csv）
         """
         self.model = model
-        self.api_key = api_key or os.getenv("DASHSCOPE_API_KEY")
+        self.api_key = os.getenv("DASHSCOPE_API_KEY") or None
         self.cache_path = Path(cache_path) if cache_path else None
         # 以 raw_citation 为主键的缓存行；以及 title/pmid/doi -> 主键 raw_citation 的索引，便于“任一标识符相同即命中”
         self._cache_by_raw: Dict[str, Dict] = {}

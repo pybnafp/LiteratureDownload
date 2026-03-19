@@ -15,9 +15,13 @@ from typing import List, Dict, Set, Tuple
 from collections import deque
 import datetime
 import logging
+import os
 import time
+from dotenv import load_dotenv
 from main import LiteratureDownloader
 from logging_config import setup_logging
+
+load_dotenv()
 
 logger = logging.getLogger(__name__)
 
@@ -852,9 +856,9 @@ if __name__ == "__main__":
     setup_logging(log_file="download-batch.log")
 
     # ========== 配置参数 ==========
-    # 请修改以下参数
-    YOUR_EMAIL = "gl6673258@gmail.com"  # 替换为你的邮箱
-    API_KEY = '8ae8dff75b1ee2d143685b8ba71b3b8cff09'  # 可选：PubMed API密钥
+    # 敏感信息从 .env 读取（参见 .env.example）
+    YOUR_EMAIL = os.getenv("EMAIL", "your_email@example.com")
+    API_KEY = os.getenv("PUBMED_API_KEY") or None
     
     PDF_SAVE_DIR = "literature_pdfs"  # PDF保存目录
     DOWNLOAD_DELAY = 2.0  # 下载延迟（秒），建议1.0-2.0秒，避免请求过快

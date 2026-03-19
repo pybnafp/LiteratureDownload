@@ -21,8 +21,12 @@ from non_oa_downloader import NonOADownloader
 from article_processor import ArticleProcessor
 from google_scholar_client import GoogleScholarClient
 from logging_config import setup_logging
+import os
 import time
 import logging
+from dotenv import load_dotenv
+
+load_dotenv()
 
 logger = logging.getLogger(__name__)
 
@@ -547,11 +551,10 @@ if __name__ == "__main__":
     setup_logging(log_file="download.log")
 
     # ========== 配置参数 ==========
-    # 请修改以下参数
-    YOUR_EMAIL = "gl6673258@gmail.com"  # 替换为你的邮箱
-    API_KEY = '8ae8dff75b1ee2d143685b8ba71b3b8cff09'  # 可选：PubMed API密钥（可提高请求速率）
-    # Google Scholar API（searchapi.io）密钥，用于在 OA 下载失败后，通过标题再尝试一次下载
-    GOOGLE_SCHOLAR_API_KEY = None
+    # 敏感信息从 .env 读取（参见 .env.example）
+    YOUR_EMAIL = os.getenv("EMAIL", "your_email@example.com")
+    API_KEY = os.getenv("PUBMED_API_KEY") or None
+    GOOGLE_SCHOLAR_API_KEY = os.getenv("GOOGLE_SCHOLAR_API_KEY") or None
     
     SEARCH_QUERY = "speech language pathology"  # PubMed搜索关键词 speech disorder/speech disorder assessment
     MAX_RESULTS = 50  # 最大搜索结果数
