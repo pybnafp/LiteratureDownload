@@ -22,3 +22,7 @@ __pycache__/
 
 # 忽略.cursorignore文件
 .cursorignore
+
+# 忽略literature_pdfs目录下的oa目录和non_oa目录
+literature_pdfs/oa/*
+literature_pdfs/non_oa/*
