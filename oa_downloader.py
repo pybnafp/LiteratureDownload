@@ -39,7 +39,7 @@ class OADownloader:
         timeout: int = 60,
         delay: float = 1.0,
         use_selenium_fallback: bool = False,
-        selenium_headless: bool = False
+        selenium_headless: bool = True,
     ):
         """
         初始化OA下载器
@@ -209,7 +209,7 @@ class OADownloader:
                 headless=self.selenium_headless,
                 wait_time=20,
                 use_undetected=True,  # 直接使用undetected-chromedriver
-                auto_fallback=False  # 不再降级
+                auto_fallback=True,  # UC 初始化失败时降级为标准 Selenium + 缓存的 chromedriver
             )
             
             result = selenium_downloader.download_pdf(

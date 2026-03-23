@@ -43,7 +43,7 @@ class LiteratureDownloader:
         download_delay: float = 1.0,
         timeout: int = 60,
         use_selenium_fallback: bool = False,
-        selenium_headless: bool = False,
+        selenium_headless: bool = True,
         use_llm_for_references: bool = True,
     ):
         """
@@ -97,6 +97,7 @@ class LiteratureDownloader:
                 save_dir=str(Path(pdf_save_dir) / "google_scholar"),
                 timeout=timeout,
                 delay=download_delay,
+                selenium_headless=selenium_headless,
             )
         else:
             self.google_scholar_client = None
@@ -565,7 +566,13 @@ if __name__ == "__main__":
     
     # Selenium设置（用于解决反爬虫限制）
     USE_SELENIUM_FALLBACK = True  # 是否在requests失败时使用Selenium作为备选方案
-    SELENIUM_HEADLESS = False  # Selenium是否使用无头模式（True=不显示浏览器窗口，False=显示浏览器窗口）
+    # 默认无头、不弹 Chrome 窗口；本地调试可在 .env 设置 SELENIUM_HEADLESS=false
+    _hl = (os.getenv("SELENIUM_HEADLESS", "true") or "true").strip().lower()
+    SELENIUM_HEADLESS = _hl not in ("0", "false", "no", "off")
+    logger.info(
+        "主程序启动：Selenium 无头模式=%s（环境变量 SELENIUM_HEADLESS，默认 true）",
+        SELENIUM_HEADLESS,
+    )
     
     # 是否使用 LLM 解析参考文献 raw_citation（关闭可加快测试，不依赖通义 API）
     USE_LLM_FOR_REFERENCES = False

@@ -6,12 +6,17 @@
 重构后的模块，使用已有工具类，提供统一的下载接口
 """
 import os
+import re
+import subprocess
 import time
 import logging
 import shutil
 from pathlib import Path
 from typing import Optional, Dict
 from urllib.parse import urlparse
+
+# 减少 webdriver-manager 重复联网检查；驱动仍缓存在 ~/.wdm
+os.environ.setdefault("WDM_LOG_LEVEL", "0")
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
@@ -49,6 +54,76 @@ except ImportError:
     logger.warning("webdriver-manager 未安装，ChromeDriver 版本需与本地 Chrome 一致；建议: pip install webdriver-manager")
 
 
+def _find_chrome_binary() -> Optional[str]:
+    """在 Linux / Windows / macOS 上解析 Chrome/Chromium 可执行文件路径。"""
+    for name in (
+        "google-chrome",
+        "google-chrome-stable",
+        "chromium-browser",
+        "chromium",
+        "microsoft-edge",
+    ):
+        p = shutil.which(name)
+        if p:
+            return p
+    for path in (
+        r"C:\Program Files\Google\Chrome\Application\chrome.exe",
+        r"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe",
+        "/usr/bin/google-chrome",
+        "/usr/bin/google-chrome-stable",
+        "/usr/bin/chromium-browser",
+        "/usr/bin/chromium",
+        "/snap/bin/chromium",
+    ):
+        if path and os.path.isfile(path) and os.access(path, os.X_OK):
+            return path
+    return None
+
+
+def _chrome_major_version(binary: Optional[str]) -> Optional[int]:
+    """从 `google-chrome --version` 解析主版本号，供 undetected_chromedriver 匹配驱动。"""
+    if not binary:
+        return None
+    try:
+        proc = subprocess.run(
+            [binary, "--version"],
+            capture_output=True,
+            text=True,
+            timeout=15,
+        )
+        text = (proc.stdout or "") + (proc.stderr or "")
+        m = re.search(r"(\d+)\.", text)
+        if m:
+            return int(m.group(1))
+    except Exception:
+        pass
+    return None
+
+
+def _install_chromedriver_via_wdm() -> Optional[str]:
+    """使用 webdriver-manager 安装/复用缓存中的 chromedriver，尽量延长校验周期减少重复下载。"""
+    if not WDM_AVAILABLE or ChromeDriverManager is None:
+        return None
+    try:
+        # webdriver-manager 4.x
+        path = ChromeDriverManager(driver_cache_valid_range=365).install()
+        return str(Path(path).resolve())
+    except TypeError:
+        try:
+            path = ChromeDriverManager(cache_valid_range=365).install()
+            return str(Path(path).resolve())
+        except Exception:
+            pass
+    except Exception as e:
+        logger.debug(f"ChromeDriverManager(长缓存) 失败: {e}")
+    try:
+        path = ChromeDriverManager().install()
+        return str(Path(path).resolve())
+    except Exception as e:
+        logger.warning(f"webdriver-manager 获取 ChromeDriver 失败: {e}")
+        return None
+
+
 class SeleniumDownloader:
     """基于Selenium的PDF下载器（重构版）"""
     
@@ -56,7 +131,7 @@ class SeleniumDownloader:
         self,
         download_dir: str = "literature_pdfs",
         timeout: int = 60,
-        headless: bool = False,
+        headless: bool = True,
         wait_time: int = 10,
         use_undetected: bool = False,
         auto_fallback: bool = True
@@ -96,21 +171,35 @@ class SeleniumDownloader:
         else:
             chrome_options = Options()
 
-        # 无头模式：undetected-chromedriver 在无头模式下效果可能变差，仅标准 Selenium 时启用
-        if self.headless and not use_uc:
-            chrome_options.add_argument('--headless=new')
+        # 无头模式：标准 Selenium 与 undetected-chromedriver 均需显式添加，否则会弹出可见窗口
+        if self.headless:
+            chrome_options.add_argument("--headless=new")
+            chrome_options.add_argument("--window-size=1920,1080")
+            chrome_options.add_argument("--disable-gpu")
+            # Ubuntu/SSH 无 DISPLAY 或 CI 环境下，UC 同样需要这些参数才能稳定运行
+            if use_uc:
+                chrome_options.add_argument("--no-sandbox")
+                chrome_options.add_argument("--disable-dev-shm-usage")
+                if os.name != "nt":
+                    chrome_options.add_argument("--disable-setuid-sandbox")
+                # Windows 上部分 Chrome/UC 组合仍会短暂出现宿主窗口；移出屏幕作兜底（见 UC issue #2030 等）
+                if os.name == "nt":
+                    chrome_options.add_argument("--window-position=-2400,-2400")
+                logger.info("undetected-chromedriver 使用无头模式（不显示浏览器窗口）")
+            else:
+                logger.info("标准 Selenium 使用无头模式（不显示浏览器窗口）")
 
-        # 基本浏览器设置：仅在使用标准 Selenium 时添加，UC 会自行伪装
+        # 基本浏览器设置：标准 Selenium
         if not use_uc:
-            chrome_options.add_argument('--no-sandbox')
-            chrome_options.add_argument('--disable-dev-shm-usage')
-            chrome_options.add_argument('--disable-gpu')
-            chrome_options.add_argument('--disable-blink-features=AutomationControlled')
+            chrome_options.add_argument("--no-sandbox")
+            chrome_options.add_argument("--disable-dev-shm-usage")
+            chrome_options.add_argument("--disable-gpu")
+            chrome_options.add_argument("--disable-blink-features=AutomationControlled")
             chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
-            chrome_options.add_experimental_option('useAutomationExtension', False)
+            chrome_options.add_experimental_option("useAutomationExtension", False)
             chrome_options.add_argument(
-                "user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-                "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+                "user-agent=Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
+                "(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
             )
 
         # 配置下载目录与 PDF 直接下载
@@ -140,33 +229,34 @@ class SeleniumDownloader:
 
         chrome_options = self._setup_chrome_options()
 
-        # 获取与本机 Chrome 版本匹配的 ChromeDriver 路径（避免 Chrome 145 vs ChromeDriver 146 等不匹配）
-        driver_path = None
-        if WDM_AVAILABLE and ChromeDriverManager is not None:
-            try:
-                driver_path = ChromeDriverManager().install()
-                logger.info("已通过 webdriver-manager 获取与本机 Chrome 匹配的 ChromeDriver 路径")
-            except Exception as e:
-                logger.warning(f"webdriver-manager 获取 ChromeDriver 失败: {e}，将使用默认驱动")
+        # 标准 Selenium 使用的 chromedriver（长缓存，避免每次运行都联网拉驱动）
+        driver_path: Optional[str] = None
 
         # 优先：使用 undetected-chromedriver（可绕过 Cloudflare 等检测）
+        # 注意：不要与 webdriver-manager 的 chromedriver 混用（易触发 patch 后 “Binary Location Must be a String” 等错误），
+        # 由 UC 自行下载并缓存与当前 Chrome 主版本匹配的驱动。
         if self.use_undetected and UC_AVAILABLE:
             logger.info("使用 undetected-chromedriver 初始化 Chrome（可绕过 Cloudflare 检测）")
             try:
-                if driver_path:
-                    self.driver = uc.Chrome(
-                        driver_executable_path=driver_path,
-                        options=chrome_options,
-                        use_subprocess=True,
-                        auto_update=False,  # 版本由 webdriver-manager 管理，避免 UC 自动下载不匹配版本
-                    )
-                else:
-                    self.driver = uc.Chrome(options=chrome_options, use_subprocess=True)
+                chrome_bin = _find_chrome_binary()
+                version_main = _chrome_major_version(chrome_bin)
+                uc_kwargs: Dict = {
+                    "options": chrome_options,
+                    "use_subprocess": True,
+                    # 仅加 --headless 到 options 不够：UC 打补丁时常会忽略，必须在构造函数显式传入（否则 Windows 仍会弹出完整 Chrome）
+                    "headless": self.headless,
+                }
+                if chrome_bin:
+                    uc_kwargs["browser_executable_path"] = str(chrome_bin)
+                if version_main is not None:
+                    uc_kwargs["version_main"] = version_main
+                self.driver = uc.Chrome(**uc_kwargs)
                 self.driver.set_page_load_timeout(self.timeout)
-                try:
-                    self.driver.maximize_window()
-                except Exception:
-                    pass
+                if not self.headless:
+                    try:
+                        self.driver.maximize_window()
+                    except Exception:
+                        pass
                 logger.info("undetected-chromedriver 初始化成功")
                 return self.driver
             except Exception as e:
@@ -177,11 +267,17 @@ class SeleniumDownloader:
                 else:
                     raise
 
+        # 降级或默认：标准 Selenium，此时再调用 webdriver-manager（365 天内复用缓存）
+        if driver_path is None:
+            driver_path = _install_chromedriver_via_wdm()
+            if driver_path:
+                logger.info("已通过 webdriver-manager 获取 ChromeDriver（优先使用本地缓存）")
+
         # 标准 Selenium Chrome（或 UC 失败后的降级）
         logger.info("使用标准 Selenium Chrome 初始化浏览器")
         try:
             if driver_path:
-                service = Service(executable_path=driver_path)
+                service = Service(executable_path=str(driver_path))
                 self.driver = webdriver.Chrome(service=service, options=chrome_options)
             else:
                 self.driver = webdriver.Chrome(options=chrome_options)
@@ -191,10 +287,11 @@ class SeleniumDownloader:
             raise
 
         self.driver.set_page_load_timeout(self.timeout)
-        try:
-            self.driver.maximize_window()
-        except Exception:
-            pass
+        if not self.headless:
+            try:
+                self.driver.maximize_window()
+            except Exception:
+                pass
         try:
             self.driver.execute_script(
                 "Object.defineProperty(navigator, 'webdriver', {get: () => undefined})"
@@ -978,13 +1075,16 @@ class SeleniumDownloader:
             # 恢复原始设置
             self.use_undetected = original_use_undetected
             
-            # 清理driver
-            if driver:
-                try:
-                    driver.quit()
-                except:
-                    pass
-                self.driver = None
+            # 务必关闭浏览器，避免批量下载时堆积 Chrome 窗口/进程（driver 与 self.driver 可能为同一实例）
+            _quit_done = set()
+            for d in (driver, self.driver):
+                if d is not None and id(d) not in _quit_done:
+                    _quit_done.add(id(d))
+                    try:
+                        d.quit()
+                    except Exception:
+                        pass
+            self.driver = None
             
             # 清理临时下载目录中的残留文件
             try:
@@ -1011,7 +1111,7 @@ if __name__ == "__main__":
     # 测试示例
     downloader = SeleniumDownloader(
         download_dir="literature_pdfs/test_selenium",
-        headless=False,  # 设置为True以隐藏浏览器窗口
+        headless=True,  # 改为 False 可显示浏览器窗口调试
         wait_time=15
     )
     

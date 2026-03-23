@@ -2,6 +2,9 @@
 批量下载言语障碍测评和干预相关文献的脚本
 基于main.py，支持多个PubMed搜索关键词的批量搜索和下载
 
+Ubuntu / 无桌面：默认 Selenium 无头（不弹窗），需安装 google-chrome-stable 或 chromium。
+命令行：python batch_speech_disorder_downloader.py
+
 设计思路：
 - 使用多个搜索关键词组合，覆盖言语障碍的测评和干预主题
 - 每个关键词设置合适的最大搜索结果数，总计目标上万篇文献
@@ -11,7 +14,7 @@
 
 import pandas as pd
 from pathlib import Path
-from typing import List, Dict, Set, Tuple
+from typing import List, Dict, Set, Tuple, Optional
 from collections import deque
 import datetime
 import logging
@@ -24,6 +27,25 @@ from logging_config import setup_logging
 load_dotenv()
 
 logger = logging.getLogger(__name__)
+
+
+def _resolve_google_scholar_api_key(
+    enabled: bool,
+    explicit_key: Optional[str],
+) -> Optional[str]:
+    """
+    仅在 enabled 为 True 时解析 API Key（显式参数优先，否则读环境变量 GOOGLE_SCHOLAR_API_KEY）。
+    空字符串、None、字面量 \"None\"/\"null\" 视为未配置。
+    """
+    if not enabled:
+        return None
+    key = explicit_key if explicit_key is not None else os.getenv("GOOGLE_SCHOLAR_API_KEY")
+    if key is None:
+        return None
+    key = str(key).strip()
+    if not key or key.lower() in ("none", "null", ""):
+        return None
+    return key
 
 
 # ========== PubMed 搜索关键词配置（分层 BFS 用种子关键词） ==========
@@ -71,29 +93,29 @@ SEARCH_QUERIES = [
         "description": "构音障碍 - 诊断/评估（核心）",
     },
     # 6) Dysarthria 干预/治疗
-    {
-        "query": "dysarthria AND (intervention OR therapy OR treatment OR rehabilitation)",
-        "max_results": 50,
-        "description": "构音障碍 - 干预/治疗（核心）",
-    },
-    # 7) ASD + 言语/语言 + 诊断/评估
-    {
-        "query": "\"autism spectrum disorder\" AND (speech OR language) AND (assessment OR diagnosis OR evaluation)",
-        "max_results": 50,
-        "description": "ASD 言语/语言 - 诊断/评估（核心）",
-    },
-    # 8) ASD + 言语/语言 + 干预/治疗
-    {
-        "query": "\"autism spectrum disorder\" AND (speech OR language) AND (intervention OR therapy OR treatment)",
-        "max_results": 50,
-        "description": "ASD 言语/语言 - 干预/治疗（核心）",
-    },
-    # 9) DLD 诊断/评估
-    {
-        "query": "\"developmental language disorder\" AND (assessment OR diagnosis OR evaluation)",
-        "max_results": 50,
-        "description": "DLD - 诊断/评估（核心）",
-    },
+    # {
+    #     "query": "dysarthria AND (intervention OR therapy OR treatment OR rehabilitation)",
+    #     "max_results": 50,
+    #     "description": "构音障碍 - 干预/治疗（核心）",
+    # },
+    # # 7) ASD + 言语/语言 + 诊断/评估
+    # {
+    #     "query": "\"autism spectrum disorder\" AND (speech OR language) AND (assessment OR diagnosis OR evaluation)",
+    #     "max_results": 50,
+    #     "description": "ASD 言语/语言 - 诊断/评估（核心）",
+    # },
+    # # 8) ASD + 言语/语言 + 干预/治疗
+    # {
+    #     "query": "\"autism spectrum disorder\" AND (speech OR language) AND (intervention OR therapy OR treatment)",
+    #     "max_results": 50,
+    #     "description": "ASD 言语/语言 - 干预/治疗（核心）",
+    # },
+    # # 9) DLD 诊断/评估
+    # {
+    #     "query": "\"developmental language disorder\" AND (assessment OR diagnosis OR evaluation)",
+    #     "max_results": 50,
+    #     "description": "DLD - 诊断/评估（核心）",
+    # },
     # 10) DLD 干预/治疗
     {
         "query": "\"developmental language disorder\" AND (intervention OR therapy OR treatment OR rehabilitation)",
@@ -151,17 +173,17 @@ SEARCH_QUERIES = [
         "description": "DLD - 言语治疗（重要）",
     },
     # 19) Speech language pathology 指南
-    {
-        "query": "\"speech language pathology\" AND (guidelines OR \"best practice\")",
-        "max_results": 20,
-        "description": "言语语言病理学 - 指南/共识（重要）",
-    },
-    # 20) Communication disorder 康复
-    {
-        "query": "\"communication disorder\" AND rehabilitation",
-        "max_results": 20,
-        "description": "沟通障碍 - 康复（重要）",
-    },
+    # {
+    #     "query": "\"speech language pathology\" AND (guidelines OR \"best practice\")",
+    #     "max_results": 20,
+    #     "description": "言语语言病理学 - 指南/共识（重要）",
+    # },
+    # # 20) Communication disorder 康复
+    # {
+    #     "query": "\"communication disorder\" AND rehabilitation",
+    #     "max_results": 20,
+    #     "description": "沟通障碍 - 康复（重要）",
+    # },
 
     # ---------- 次要 / 跨学科 AI 扩量类（Secondary / AI）: 40 篇（8×5） ----------
     # 21) 统合：speech/language disorder + AI
@@ -217,7 +239,7 @@ SEARCH_QUERIES = [
 # ========== 全局下载目标与分层参数 ==========
 # 目标：最终成功下载约 30 万篇相关文献（包括各层参考文献）
 # TARGET_TOTAL_PDFS = 300_000
-TARGET_TOTAL_PDFS = 300_000
+TARGET_TOTAL_PDFS = 10_000
 
 # BFS 分层最大深度（1=原始PubMed结果，2=第一层引用，3=第二层引用）
 MAX_BFS_DEPTH = 3
@@ -242,8 +264,10 @@ class BatchSpeechDisorderDownloader:
         download_delay: float = 1.0,
         timeout: int = 60,
         use_selenium_fallback: bool = True,
-        selenium_headless: bool = False,
+        selenium_headless: bool = True,
         use_llm_for_references: bool = True,
+        use_google_scholar: bool = False,
+        google_scholar_api_key: Optional[str] = None,
     ):
         """
         初始化批量下载器
@@ -253,12 +277,22 @@ class BatchSpeechDisorderDownloader:
         :param download_delay: 下载延迟（秒）
         :param timeout: 下载超时时间（秒）
         :param use_selenium_fallback: 是否在requests失败时使用Selenium作为备选方案
-        :param selenium_headless: Selenium是否使用无头模式
+        :param selenium_headless: Selenium 是否无头（默认 True，适合 Ubuntu SSH/无桌面环境）
         :param use_llm_for_references: 是否使用 LLM 解析参考文献（关闭可加快全流程测试）
+        :param use_google_scholar: 是否在 OA 常规下载失败后尝试 Google Scholar API（searchapi.io）
+        :param google_scholar_api_key: Scholar API Key；为 None 且 use_google_scholar=True 时读取环境变量 GOOGLE_SCHOLAR_API_KEY
         """
+        gs_key = _resolve_google_scholar_api_key(use_google_scholar, google_scholar_api_key)
+        if use_google_scholar and not gs_key:
+            logger.warning(
+                "已开启 use_google_scholar，但未提供有效 API Key（参数或环境变量 GOOGLE_SCHOLAR_API_KEY），"
+                "将不启用 Google Scholar 兜底下载"
+            )
+
         self.downloader = LiteratureDownloader(
             email=email,
             api_key=api_key,
+            google_scholar_api_key=gs_key,
             pdf_save_dir=pdf_save_dir,
             download_delay=download_delay,
             timeout=timeout,
@@ -855,6 +889,10 @@ if __name__ == "__main__":
     # 所有日志同时输出到控制台和文件（位于项目根目录或当前工作目录）
     setup_logging(log_file="download-batch.log")
 
+    # ========== Ubuntu / 无桌面：不依赖 DISPLAY，Chrome 使用 headless ==========
+    # 若必须在有界面环境调试，可在 .env 设置 SELENIUM_HEADLESS=false
+    # 无 DISPLAY 时切勿强制设置错误 DISPLAY，headless 模式无需 X11
+
     # ========== 配置参数 ==========
     # 敏感信息从 .env 读取（参见 .env.example）
     YOUR_EMAIL = os.getenv("EMAIL", "your_email@example.com")
@@ -864,17 +902,27 @@ if __name__ == "__main__":
     DOWNLOAD_DELAY = 2.0  # 下载延迟（秒），建议1.0-2.0秒，避免请求过快
     TIMEOUT = 60  # 下载超时时间（秒）
     
-    # Selenium设置
+    # Selenium：默认全程无头、不弹窗（适合命令行与 systemd/cron）
     USE_SELENIUM_FALLBACK = True  # 是否使用Selenium作为备选方案
-    SELENIUM_HEADLESS = False  # Selenium是否使用无头模式
+    _hl = (os.getenv("SELENIUM_HEADLESS", "true") or "true").strip().lower()
+    SELENIUM_HEADLESS = _hl not in ("0", "false", "no", "off")
     
     # 参考文献解析：是否使用通义 LLM 从 raw_citation 提取标题等（关闭则仅用 XML/正则，加快测试）
     USE_LLM_FOR_REFERENCES = True  # 测试全流程时可设为 False；需要更准的引用解析时设为 True
+
+    # Google Scholar（searchapi.io）：OA 下载失败时按标题兜底（可选）
+    # True 时需提供有效 Key：本处 GOOGLE_SCHOLAR_API_KEY 或 .env 中 GOOGLE_SCHOLAR_API_KEY（勿填 None 字符串）
+    USE_GOOGLE_SCHOLAR = True
+    GOOGLE_SCHOLAR_API_KEY = os.getenv("GOOGLE_SCHOLAR_API_KEY") or None
     
     # 批次处理设置
     BATCH_SIZE = 50  # 每个批次处理的文献数量（建议20-100之间，可根据实际情况调整）
     
     # ========== 执行批量下载 ==========
+    logger.info(
+        "批量下载启动：Selenium 无头模式=%s（环境变量 SELENIUM_HEADLESS，默认 true）",
+        SELENIUM_HEADLESS,
+    )
     batch_downloader = BatchSpeechDisorderDownloader(
         email=YOUR_EMAIL,
         api_key=API_KEY,
@@ -884,6 +932,8 @@ if __name__ == "__main__":
         use_selenium_fallback=USE_SELENIUM_FALLBACK,
         selenium_headless=SELENIUM_HEADLESS,
         use_llm_for_references=USE_LLM_FOR_REFERENCES,
+        use_google_scholar=USE_GOOGLE_SCHOLAR,
+        google_scholar_api_key=GOOGLE_SCHOLAR_API_KEY,
     )
     
     # 方式一（原有）：按关键词批次顺序处理（不分层扩展引用）

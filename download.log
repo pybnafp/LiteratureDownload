@@ -1,0 +1,312 @@
+2026-03-22 08:50:45,260 - INFO - download_recorder - 从 download_results.csv 加载了 7408 个已下载记录
+2026-03-22 08:50:45,709 - INFO - download_recorder - 从 download_errors.csv 加载了 13880 个失败记录
+2026-03-22 08:50:59,192 - INFO - article_processor - 【OA检查】开始检查DOI 10.1111/sjop.70087 的OA状态...
+2026-03-22 08:50:59,192 - INFO - article_processor - 【OA检查】调用OAChecker.check_oa - DOI: 10.1111/sjop.70087, PMID: 41863068, Title: Associations Between Maternal Cumulative Psychological Distress and Child Subsequent Social Competence: The Role of Early Childhood Education and Care and Social Networks.
+2026-03-22 08:50:59,192 - INFO - article_processor - 【OA检查】OAChecker将按顺序尝试以下方法:
+2026-03-22 08:50:59,192 - INFO - article_processor -   [1] check_unpaywall - Unpaywall API检查
+2026-03-22 08:50:59,192 - INFO - article_processor -   [2] check_pmc - PMC检查 (PMID: 41863068)
+2026-03-22 08:50:59,193 - INFO - article_processor -   [3] check_europe_pmc - Europe PMC检查
+2026-03-22 08:50:59,193 - INFO - article_processor -   [4] check_crossref - Crossref检查
+2026-03-22 08:50:59,193 - INFO - oa_checker - 【OA检查-综合判定】开始综合判定OA状态 - DOI: 10.1111/sjop.70087
+2026-03-22 08:50:59,193 - INFO - oa_checker - 【OA检查-综合判定】[1/4] 尝试Unpaywall...
+2026-03-22 08:50:59,193 - INFO - oa_checker - 【OA检查-Unpaywall】开始检查 DOI: 10.1111/sjop.70087
+2026-03-22 08:51:05,192 - INFO - oa_checker - 【OA检查-Unpaywall】检查失败: 404 Client Error: Not Found for url: https://api.unpaywall.org/v2/10.1111/sjop.70087?email=gl6673258@gmail.com
+2026-03-22 08:51:06,201 - INFO - oa_checker - 【OA检查-综合判定】✗ Unpaywall未确认OA或检查失败
+2026-03-22 08:51:06,201 - INFO - oa_checker - 【OA检查-综合判定】[2/4] 尝试PMC...
+2026-03-22 08:51:06,201 - INFO - oa_checker - 【OA检查-PMC】开始检查 PMID: 41863068
+2026-03-22 08:51:11,979 - INFO - oa_checker - 【OA检查-PMC】检查完成 - 是否OA: False, PMCID: None, 有URL: False
+2026-03-22 08:51:12,991 - INFO - oa_checker - 【OA检查-综合判定】✗ PMC未确认OA或检查失败
+2026-03-22 08:51:12,992 - INFO - oa_checker - 【OA检查-综合判定】[3/4] 尝试Europe PMC...
+2026-03-22 08:51:12,992 - INFO - oa_checker - 【OA检查-Europe PMC】开始检查 DOI: 10.1111/sjop.70087
+2026-03-22 08:51:19,095 - INFO - oa_checker - 【OA检查-Europe PMC】检查完成 - 未找到结果
+2026-03-22 08:51:20,104 - INFO - oa_checker - 【OA检查-综合判定】✗ Europe PMC未确认OA或检查失败
+2026-03-22 08:51:20,104 - INFO - oa_checker - 【OA检查-综合判定】[4/4] 尝试Crossref...
+2026-03-22 08:51:20,104 - INFO - oa_checker - 【OA检查-Crossref】开始检查 DOI: 10.1111/sjop.70087
+2026-03-22 08:51:26,074 - INFO - oa_checker - 【OA检查-Crossref】检查完成 - 是否OA: True, 有URL: True
+2026-03-22 08:51:27,092 - INFO - oa_checker - 【OA检查-综合判定】✓ Crossref确认OA，返回结果
+2026-03-22 08:51:27,092 - INFO - article_processor - 【OA检查】OAChecker返回结果 - 来源: crossref, 是否OA: True
+2026-03-22 08:51:27,093 - INFO - article_processor - 【OA检查】检查结果 - 来源: crossref, 是否OA: True, 是否有URL: True
+2026-03-22 08:51:27,093 - INFO - article_processor - 处理OA文献: 10.1111/sjop.70087
+2026-03-22 08:51:27,094 - INFO - oa_downloader - 【OA下载】检测到OA检查结果中的URL，尝试直接下载: https://onlinelibrary.wiley.com/doi/pdf/10.1111/sjop.70087
+2026-03-22 08:51:27,094 - INFO - pdf_utils - 直接下载PDF: https://onlinelibrary.wiley.com/doi/pdf/10.1111/sjop.70087
+2026-03-22 08:51:33,286 - ERROR - pdf_utils - 直接下载PDF失败 - HTTP错误 unknown: 403 Client Error: Forbidden for url: https://onlinelibrary.wiley.com/doi/pdf/10.1111/sjop.70087
+2026-03-22 08:51:33,288 - INFO - redirect_handler - 【OA重定向处理】使用OA检查结果，直接返回链接: https://onlinelibrary.wiley.com/doi/pdf/10.1111/sjop.70087
+2026-03-22 08:51:33,289 - INFO - oa_downloader - 【OA下载】开始静态PDF提取: https://onlinelibrary.wiley.com/doi/pdf/10.1111/sjop.70087
+2026-03-22 08:51:33,289 - INFO - oa_downloader - 从HTML页面提取PDF: https://onlinelibrary.wiley.com/doi/pdf/10.1111/sjop.70087
+2026-03-22 08:51:38,437 - ERROR - oa_downloader - 从HTML页面提取PDF失败: 403 Client Error: Forbidden for url: https://onlinelibrary.wiley.com/doi/pdf/10.1111/sjop.70087
+2026-03-22 08:51:38,438 - INFO - oa_downloader - 【OA下载】静态PDF提取失败，尝试使用Selenium进行动态下载: https://onlinelibrary.wiley.com/doi/pdf/10.1111/sjop.70087
+2026-03-22 08:51:38,439 - INFO - selenium_pdf_downloader - 使用undetected-chromedriver下载: https://onlinelibrary.wiley.com/doi/pdf/10.1111/sjop.70087
+2026-03-22 08:51:38,439 - INFO - selenium_pdf_downloader - 使用 undetected-chromedriver 初始化 Chrome（可绕过 Cloudflare 检测）
+2026-03-22 08:51:40,961 - INFO - undetected_chromedriver.patcher - patching driver executable C:\Users\laptop\appdata\roaming\undetected_chromedriver\undetected_chromedriver.exe
+2026-03-22 08:51:43,221 - INFO - selenium_pdf_downloader - undetected-chromedriver 初始化成功
+2026-03-22 08:51:43,223 - INFO - selenium_pdf_downloader - 使用undetected-chromedriver访问URL: https://onlinelibrary.wiley.com/doi/pdf/10.1111/sjop.70087
+2026-03-22 08:52:25,455 - INFO - selenium_pdf_downloader - 检测到Cloudflare验证页面，等待验证元素加载...
+2026-03-22 08:52:57,192 - WARNING - selenium_pdf_downloader - 未找到可点击的验证复选框，可能验证页面结构已变化或验证会自动通过
+2026-03-22 08:52:57,192 - INFO - selenium_pdf_downloader - 等待Cloudflare验证通过...
+2026-03-22 08:52:57,284 - INFO - selenium_pdf_downloader - Cloudflare验证已通过，页面已跳转
+2026-03-22 08:52:58,294 - INFO - selenium_pdf_downloader - Cloudflare验证已通过，开始PDF下载处理...
+2026-03-22 08:52:59,352 - INFO - selenium_pdf_downloader - 检测到cookie弹窗，尝试自动处理...
+2026-03-22 08:53:09,401 - WARNING - selenium_pdf_downloader - 处理cookie弹窗已耗时 10.1 秒，停止进一步尝试，继续后续下载流程
+2026-03-22 08:53:09,403 - WARNING - selenium_pdf_downloader - 未找到可点击的接受Cookies按钮，可能cookie弹窗结构已变化或无需显式同意
+2026-03-22 08:53:09,404 - WARNING - selenium_pdf_downloader - Cookie弹窗可能未完全处理，继续尝试下载...
+2026-03-22 08:53:09,416 - INFO - selenium_pdf_downloader - 当前页面已经是PDF文件，等待下载...
+2026-03-22 08:53:09,427 - INFO - selenium_pdf_downloader - 等待PDF下载完成... (当前URL: https://onlinelibrary.wiley.com/doi/pdf/10.1111/sjop.70087)
+2026-03-22 08:53:09,428 - INFO - selenium_pdf_downloader - 检测到PDF页面，等待浏览器开始下载...
+2026-03-22 08:53:12,445 - INFO - selenium_pdf_downloader - 开始监控下载目录: literature_pdfs\oa\temp_downloads
+2026-03-22 08:53:32,628 - WARNING - selenium_pdf_downloader - 等待下载超时（20秒），未检测到下载文件
+2026-03-22 08:53:32,628 - WARNING - selenium_pdf_downloader - 未检测到下载文件，可能下载失败或页面需要人工操作
+2026-03-22 08:53:32,828 - WARNING - selenium_pdf_downloader - Selenium下载失败: 10.1111/sjop.70087
+2026-03-22 08:53:32,828 - WARNING - oa_downloader - 【OA下载】站点 onlinelibrary.wiley.com 的 OA 自动下载失败，本次运行后续将跳过该站点上的 OA 文献（仅跳过 OA 通道，不影响其它下载层级）
+2026-03-22 08:53:32,828 - INFO - article_processor - 【OA下载】OA 下载失败，尝试使用 Google Scholar API 根据标题下载
+2026-03-22 08:53:32,828 - INFO - google_scholar_client - 【Google Scholar】开始根据标题搜索(使用 searchapi.io): Associations Between Maternal Cumulative Psychological Distress and Child Subseq...
+2026-03-22 08:53:38,667 - ERROR - google_scholar_client - 调用 Google Scholar API 失败: 401 Client Error: Unauthorized for url: https://www.searchapi.io/api/v1/search?api_key=None&engine=google_scholar&q=Associations+Between+Maternal+Cumulative+Psychological+Distress+and+Child+Subsequent+Social+Competence%3A+The+Role+of+Early+Childhood+Education+and+Care+and+Social+Networks.
+2026-03-22 08:53:39,679 - ERROR - article_processor - 【Google Scholar】下载失败: 调用 Google Scholar API 失败: 401 Client Error: Unauthorized for url: https://www.searchapi.io/api/v1/search?api_key=None&engine=google_scholar&q=Associations+Between+Maternal+Cumulative+Psychological+Distress+and+Child+Subsequent+Social+Competence%3A+The+Role+of+Early+Childhood+Education+and+Care+and+Social+Networks.
+2026-03-22 08:53:39,920 - WARNING - download_recorder - 标记DOI为下载失败: 10.1111/sjop.70087 (原因: 调用 Google Scholar API 失败: 401 Client Error: Unauthorized for url: https://www.searchapi.io/api/v1/search?api_key=None&engine=google_scholar&q=Associations+Between+Maternal+Cumulative+Psychological+Distress+and+Child+Subsequent+Social+Competence%3A+The+Role+of+Early+Childhood+Education+and+Care+and+Social+Networks.)
+2026-03-22 08:53:39,921 - ERROR - article_processor - ✗ 文献处理失败: 调用 Google Scholar API 失败: 401 Client Error: Unauthorized for url: https://www.searchapi.io/api/v1/search?api_key=None&engine=google_scholar&q=Associations+Between+Maternal+Cumulative+Psychological+Distress+and+Child+Subsequent+Social+Competence%3A+The+Role+of+Early+Childhood+Education+and+Care+and+Social+Networks.
+2026-03-22 08:53:40,937 - INFO - article_processor - 【OA检查】开始检查DOI 10.1016/j.ijporl.2026.112793 的OA状态...
+2026-03-22 08:53:40,938 - INFO - article_processor - 【OA检查】调用OAChecker.check_oa - DOI: 10.1016/j.ijporl.2026.112793, PMID: 41861650, Title: Effective musical training protocols for the rehabilitation of children with cochlear implants: A systematic review.
+2026-03-22 08:53:40,938 - INFO - article_processor - 【OA检查】OAChecker将按顺序尝试以下方法:
+2026-03-22 08:53:40,939 - INFO - article_processor -   [1] check_unpaywall - Unpaywall API检查
+2026-03-22 08:53:40,939 - INFO - article_processor -   [2] check_pmc - PMC检查 (PMID: 41861650)
+2026-03-22 08:53:40,939 - INFO - article_processor -   [3] check_europe_pmc - Europe PMC检查
+2026-03-22 08:53:40,939 - INFO - article_processor -   [4] check_crossref - Crossref检查
+2026-03-22 08:53:40,940 - INFO - oa_checker - 【OA检查-综合判定】开始综合判定OA状态 - DOI: 10.1016/j.ijporl.2026.112793
+2026-03-22 08:53:40,940 - INFO - oa_checker - 【OA检查-综合判定】[1/4] 尝试Unpaywall...
+2026-03-22 08:53:40,941 - INFO - oa_checker - 【OA检查-Unpaywall】开始检查 DOI: 10.1016/j.ijporl.2026.112793
+2026-03-22 08:53:46,645 - INFO - oa_checker - 【OA检查-Unpaywall】检查完成 - 是否OA: False, 有URL: False
+2026-03-22 08:53:47,658 - INFO - oa_checker - 【OA检查-综合判定】✗ Unpaywall未确认OA或检查失败
+2026-03-22 08:53:47,659 - INFO - oa_checker - 【OA检查-综合判定】[2/4] 尝试PMC...
+2026-03-22 08:53:47,659 - INFO - oa_checker - 【OA检查-PMC】开始检查 PMID: 41861650
+2026-03-22 08:53:53,483 - INFO - oa_checker - 【OA检查-PMC】检查完成 - 是否OA: False, PMCID: None, 有URL: False
+2026-03-22 08:53:54,490 - INFO - oa_checker - 【OA检查-综合判定】✗ PMC未确认OA或检查失败
+2026-03-22 08:53:54,490 - INFO - oa_checker - 【OA检查-综合判定】[3/4] 尝试Europe PMC...
+2026-03-22 08:53:54,490 - INFO - oa_checker - 【OA检查-Europe PMC】开始检查 DOI: 10.1016/j.ijporl.2026.112793
+2026-03-22 08:54:00,608 - INFO - oa_checker - 【OA检查-Europe PMC】检查完成 - 未找到结果
+2026-03-22 08:54:01,622 - INFO - oa_checker - 【OA检查-综合判定】✗ Europe PMC未确认OA或检查失败
+2026-03-22 08:54:01,623 - INFO - oa_checker - 【OA检查-综合判定】[4/4] 尝试Crossref...
+2026-03-22 08:54:01,623 - INFO - oa_checker - 【OA检查-Crossref】开始检查 DOI: 10.1016/j.ijporl.2026.112793
+2026-03-22 08:54:07,369 - INFO - oa_checker - 【OA检查-Crossref】检查完成 - 是否OA: True, 有URL: False
+2026-03-22 08:54:08,382 - INFO - oa_checker - 【OA检查-综合判定】✓ Crossref确认OA，返回结果
+2026-03-22 08:54:08,382 - INFO - article_processor - 【OA检查】OAChecker返回结果 - 来源: crossref, 是否OA: True
+2026-03-22 08:54:08,382 - INFO - article_processor - 【OA检查】检查结果 - 来源: crossref, 是否OA: True, 是否有URL: False
+2026-03-22 08:54:08,383 - INFO - article_processor - 处理OA文献: 10.1016/j.ijporl.2026.112793
+2026-03-22 08:54:08,383 - WARNING - redirect_handler - 【OA重定向处理】oa_info 中既没有 url 也没有 doi
+2026-03-22 08:54:08,383 - INFO - oa_downloader - 【OA下载】未从 oa_info 获取到URL，尝试使用 DOI 通用重定向: 10.1016/j.ijporl.2026.112793
+2026-03-22 08:54:08,383 - INFO - redirect_handler - 【重定向处理-crossref】检测到DOI，构造URL: https://doi.org/10.1016/j.ijporl.2026.112793
+2026-03-22 08:54:19,644 - INFO - redirect_handler - 【重定向处理-crossref】HTTP状态码: 200
+2026-03-22 08:54:19,645 - INFO - redirect_handler - 【重定向获取链接-crossref】重定向完成
+2026-03-22 08:54:19,645 - INFO - redirect_handler - 【重定向获取链接-crossref】初始URL: 10.1016/j.ijporl.2026.112793
+2026-03-22 08:54:19,645 - INFO - redirect_handler - 【重定向获取链接-crossref】最终URL: https://linkinghub.elsevier.com/retrieve/pii/S0165587626000881
+2026-03-22 08:54:19,648 - INFO - oa_downloader - 【OA下载】通用重定向解析成功，最终链接: https://linkinghub.elsevier.com/retrieve/pii/S0165587626000881
+2026-03-22 08:54:19,648 - INFO - oa_downloader - 【OA下载】开始静态PDF提取: https://linkinghub.elsevier.com/retrieve/pii/S0165587626000881
+2026-03-22 08:54:19,648 - INFO - oa_downloader - 从HTML页面提取PDF: https://linkinghub.elsevier.com/retrieve/pii/S0165587626000881
+2026-03-22 08:54:25,736 - WARNING - oa_downloader - 未在HTML页面中找到PDF链接
+2026-03-22 08:54:25,737 - INFO - oa_downloader - 【OA下载】静态PDF提取失败，尝试使用Selenium进行动态下载: https://linkinghub.elsevier.com/retrieve/pii/S0165587626000881
+2026-03-22 08:54:25,738 - INFO - selenium_pdf_downloader - 使用undetected-chromedriver下载: https://linkinghub.elsevier.com/retrieve/pii/S0165587626000881
+2026-03-22 08:54:25,738 - INFO - selenium_pdf_downloader - 使用 undetected-chromedriver 初始化 Chrome（可绕过 Cloudflare 检测）
+2026-03-22 08:54:27,899 - INFO - undetected_chromedriver.patcher - patching driver executable C:\Users\laptop\appdata\roaming\undetected_chromedriver\undetected_chromedriver.exe
+2026-03-22 08:54:29,969 - INFO - selenium_pdf_downloader - undetected-chromedriver 初始化成功
+2026-03-22 08:54:29,969 - INFO - selenium_pdf_downloader - 使用undetected-chromedriver访问URL: https://linkinghub.elsevier.com/retrieve/pii/S0165587626000881
+2026-03-22 08:54:40,945 - INFO - uc - ensuring close
+2026-03-22 08:54:40,945 - INFO - uc - ensuring close
+2026-03-22 09:11:19,500 - INFO - download_recorder - 从 download_results.csv 加载了 7408 个已下载记录
+2026-03-22 09:11:19,944 - INFO - download_recorder - 从 download_errors.csv 加载了 13881 个失败记录
+2026-03-22 09:11:33,233 - INFO - article_processor - 【OA检查】开始检查DOI 10.1111/sjop.70087 的OA状态...
+2026-03-22 09:11:33,234 - INFO - article_processor - 【OA检查】调用OAChecker.check_oa - DOI: 10.1111/sjop.70087, PMID: 41863068, Title: Associations Between Maternal Cumulative Psychological Distress and Child Subsequent Social Competence: The Role of Early Childhood Education and Care and Social Networks.
+2026-03-22 09:11:33,234 - INFO - article_processor - 【OA检查】OAChecker将按顺序尝试以下方法:
+2026-03-22 09:11:33,239 - INFO - article_processor -   [1] check_unpaywall - Unpaywall API检查
+2026-03-22 09:11:33,240 - INFO - article_processor -   [2] check_pmc - PMC检查 (PMID: 41863068)
+2026-03-22 09:11:33,242 - INFO - article_processor -   [3] check_europe_pmc - Europe PMC检查
+2026-03-22 09:11:33,243 - INFO - article_processor -   [4] check_crossref - Crossref检查
+2026-03-22 09:11:33,243 - INFO - oa_checker - 【OA检查-综合判定】开始综合判定OA状态 - DOI: 10.1111/sjop.70087
+2026-03-22 09:11:33,246 - INFO - oa_checker - 【OA检查-综合判定】[1/4] 尝试Unpaywall...
+2026-03-22 09:11:33,246 - INFO - oa_checker - 【OA检查-Unpaywall】开始检查 DOI: 10.1111/sjop.70087
+2026-03-22 09:11:39,441 - INFO - oa_checker - 【OA检查-Unpaywall】检查失败: 404 Client Error: Not Found for url: https://api.unpaywall.org/v2/10.1111/sjop.70087?email=gl6673258@gmail.com
+2026-03-22 09:11:40,453 - INFO - oa_checker - 【OA检查-综合判定】✗ Unpaywall未确认OA或检查失败
+2026-03-22 09:11:40,454 - INFO - oa_checker - 【OA检查-综合判定】[2/4] 尝试PMC...
+2026-03-22 09:11:40,454 - INFO - oa_checker - 【OA检查-PMC】开始检查 PMID: 41863068
+2026-03-22 09:11:46,457 - INFO - oa_checker - 【OA检查-PMC】检查完成 - 是否OA: False, PMCID: None, 有URL: False
+2026-03-22 09:11:47,470 - INFO - oa_checker - 【OA检查-综合判定】✗ PMC未确认OA或检查失败
+2026-03-22 09:11:47,471 - INFO - oa_checker - 【OA检查-综合判定】[3/4] 尝试Europe PMC...
+2026-03-22 09:11:47,471 - INFO - oa_checker - 【OA检查-Europe PMC】开始检查 DOI: 10.1111/sjop.70087
+2026-03-22 09:11:53,618 - INFO - oa_checker - 【OA检查-Europe PMC】检查完成 - 未找到结果
+2026-03-22 09:11:54,626 - INFO - oa_checker - 【OA检查-综合判定】✗ Europe PMC未确认OA或检查失败
+2026-03-22 09:11:54,627 - INFO - oa_checker - 【OA检查-综合判定】[4/4] 尝试Crossref...
+2026-03-22 09:11:54,627 - INFO - oa_checker - 【OA检查-Crossref】开始检查 DOI: 10.1111/sjop.70087
+2026-03-22 09:12:00,624 - INFO - oa_checker - 【OA检查-Crossref】检查完成 - 是否OA: True, 有URL: True
+2026-03-22 09:12:01,638 - INFO - oa_checker - 【OA检查-综合判定】✓ Crossref确认OA，返回结果
+2026-03-22 09:12:01,639 - INFO - article_processor - 【OA检查】OAChecker返回结果 - 来源: crossref, 是否OA: True
+2026-03-22 09:12:01,639 - INFO - article_processor - 【OA检查】检查结果 - 来源: crossref, 是否OA: True, 是否有URL: True
+2026-03-22 09:12:01,639 - INFO - article_processor - 处理OA文献: 10.1111/sjop.70087
+2026-03-22 09:12:01,639 - INFO - oa_downloader - 【OA下载】检测到OA检查结果中的URL，尝试直接下载: https://onlinelibrary.wiley.com/doi/pdf/10.1111/sjop.70087
+2026-03-22 09:12:01,640 - INFO - pdf_utils - 直接下载PDF: https://onlinelibrary.wiley.com/doi/pdf/10.1111/sjop.70087
+2026-03-22 09:12:07,792 - ERROR - pdf_utils - 直接下载PDF失败 - HTTP错误 unknown: 403 Client Error: Forbidden for url: https://onlinelibrary.wiley.com/doi/pdf/10.1111/sjop.70087
+2026-03-22 09:12:07,793 - INFO - redirect_handler - 【OA重定向处理】使用OA检查结果，直接返回链接: https://onlinelibrary.wiley.com/doi/pdf/10.1111/sjop.70087
+2026-03-22 09:12:07,793 - INFO - oa_downloader - 【OA下载】开始静态PDF提取: https://onlinelibrary.wiley.com/doi/pdf/10.1111/sjop.70087
+2026-03-22 09:12:07,793 - INFO - oa_downloader - 从HTML页面提取PDF: https://onlinelibrary.wiley.com/doi/pdf/10.1111/sjop.70087
+2026-03-22 09:12:12,975 - ERROR - oa_downloader - 从HTML页面提取PDF失败: 403 Client Error: Forbidden for url: https://onlinelibrary.wiley.com/doi/pdf/10.1111/sjop.70087
+2026-03-22 09:12:12,977 - INFO - oa_downloader - 【OA下载】静态PDF提取失败，尝试使用Selenium进行动态下载: https://onlinelibrary.wiley.com/doi/pdf/10.1111/sjop.70087
+2026-03-22 09:12:12,979 - INFO - selenium_pdf_downloader - 使用undetected-chromedriver下载: https://onlinelibrary.wiley.com/doi/pdf/10.1111/sjop.70087
+2026-03-22 09:12:12,980 - INFO - selenium_pdf_downloader - 使用 undetected-chromedriver 初始化 Chrome（可绕过 Cloudflare 检测）
+2026-03-22 09:12:15,247 - INFO - undetected_chromedriver.patcher - patching driver executable C:\Users\laptop\appdata\roaming\undetected_chromedriver\undetected_chromedriver.exe
+2026-03-22 09:12:17,256 - INFO - selenium_pdf_downloader - undetected-chromedriver 初始化成功
+2026-03-22 09:12:17,256 - INFO - selenium_pdf_downloader - 使用undetected-chromedriver访问URL: https://onlinelibrary.wiley.com/doi/pdf/10.1111/sjop.70087
+2026-03-22 09:12:55,041 - INFO - selenium_pdf_downloader - 检测到Cloudflare验证页面，等待验证元素加载...
+2026-03-22 09:13:26,818 - WARNING - selenium_pdf_downloader - 未找到可点击的验证复选框，可能验证页面结构已变化或验证会自动通过
+2026-03-22 09:13:26,818 - INFO - selenium_pdf_downloader - 等待Cloudflare验证通过...
+2026-03-22 09:13:26,847 - INFO - selenium_pdf_downloader - Cloudflare验证已通过，页面已跳转
+2026-03-22 09:13:27,861 - INFO - selenium_pdf_downloader - Cloudflare验证已通过，开始PDF下载处理...
+2026-03-22 09:13:28,983 - INFO - selenium_pdf_downloader - 检测到cookie弹窗，尝试自动处理...
+2026-03-22 09:13:39,010 - WARNING - selenium_pdf_downloader - 处理cookie弹窗已耗时 10.1 秒，停止进一步尝试，继续后续下载流程
+2026-03-22 09:13:39,010 - WARNING - selenium_pdf_downloader - 未找到可点击的接受Cookies按钮，可能cookie弹窗结构已变化或无需显式同意
+2026-03-22 09:13:39,010 - WARNING - selenium_pdf_downloader - Cookie弹窗可能未完全处理，继续尝试下载...
+2026-03-22 09:13:39,018 - INFO - selenium_pdf_downloader - 当前页面已经是PDF文件，等待下载...
+2026-03-22 09:13:39,022 - INFO - selenium_pdf_downloader - 等待PDF下载完成... (当前URL: https://onlinelibrary.wiley.com/doi/pdf/10.1111/sjop.70087)
+2026-03-22 09:13:39,022 - INFO - selenium_pdf_downloader - 检测到PDF页面，等待浏览器开始下载...
+2026-03-22 09:13:42,036 - INFO - selenium_pdf_downloader - 开始监控下载目录: literature_pdfs\oa\temp_downloads
+2026-03-22 09:14:02,253 - WARNING - selenium_pdf_downloader - 等待下载超时（20秒），未检测到下载文件
+2026-03-22 09:14:02,253 - WARNING - selenium_pdf_downloader - 未检测到下载文件，可能下载失败或页面需要人工操作
+2026-03-22 09:14:02,406 - WARNING - selenium_pdf_downloader - Selenium下载失败: 10.1111/sjop.70087
+2026-03-22 09:14:02,407 - WARNING - oa_downloader - 【OA下载】站点 onlinelibrary.wiley.com 的 OA 自动下载失败，本次运行后续将跳过该站点上的 OA 文献（仅跳过 OA 通道，不影响其它下载层级）
+2026-03-22 09:14:02,407 - INFO - article_processor - 【OA下载】OA 下载失败，尝试使用 Google Scholar API 根据标题下载
+2026-03-22 09:14:02,407 - INFO - google_scholar_client - 【Google Scholar】开始根据标题搜索(使用 searchapi.io): Associations Between Maternal Cumulative Psychological Distress and Child Subseq...
+2026-03-22 09:14:09,395 - INFO - google_scholar_client - 【Google Scholar】选择候选资源链接(resource.link): https://link.springer.com/content/pdf/10.1186/s12887-018-1100-4.pdf
+2026-03-22 09:14:09,395 - INFO - pdf_utils - 直接下载PDF: https://link.springer.com/content/pdf/10.1186/s12887-018-1100-4.pdf
+2026-03-22 09:14:24,323 - INFO - pdf_utils - 文件大小约：0.59 MB
+2026-03-22 09:14:24,551 - INFO - pdf_utils - PDF下载成功: literature_pdfs\google_scholar\10.1111_sjop.70087_2026_google_scholar.pdf (0.59 MB)
+2026-03-22 09:14:24,554 - INFO - google_scholar_client - 【Google Scholar】直接下载成功(HTTP直连下载): literature_pdfs\google_scholar\10.1111_sjop.70087_2026_google_scholar.pdf
+2026-03-22 09:14:25,571 - INFO - article_processor - 【Google Scholar】下载成功，来源标记为 google_scholar，DOI=10.1111/sjop.70087, 文件路径=literature_pdfs\google_scholar\10.1111_sjop.70087_2026_google_scholar.pdf
+2026-03-22 09:14:25,811 - INFO - download_recorder - 标记DOI为已下载: 10.1111/sjop.70087
+2026-03-22 09:14:25,811 - INFO - article_processor - ✓ 文献处理成功: literature_pdfs\google_scholar\10.1111_sjop.70087_2026_google_scholar.pdf
+2026-03-22 09:14:26,825 - INFO - article_processor - 【OA检查】开始检查DOI 10.1016/j.ijporl.2026.112793 的OA状态...
+2026-03-22 09:14:26,826 - INFO - article_processor - 【OA检查】调用OAChecker.check_oa - DOI: 10.1016/j.ijporl.2026.112793, PMID: 41861650, Title: Effective musical training protocols for the rehabilitation of children with cochlear implants: A systematic review.
+2026-03-22 09:14:26,826 - INFO - article_processor - 【OA检查】OAChecker将按顺序尝试以下方法:
+2026-03-22 09:14:26,826 - INFO - article_processor -   [1] check_unpaywall - Unpaywall API检查
+2026-03-22 09:14:26,827 - INFO - article_processor -   [2] check_pmc - PMC检查 (PMID: 41861650)
+2026-03-22 09:14:26,827 - INFO - article_processor -   [3] check_europe_pmc - Europe PMC检查
+2026-03-22 09:14:26,827 - INFO - article_processor -   [4] check_crossref - Crossref检查
+2026-03-22 09:14:26,827 - INFO - oa_checker - 【OA检查-综合判定】开始综合判定OA状态 - DOI: 10.1016/j.ijporl.2026.112793
+2026-03-22 09:14:26,828 - INFO - oa_checker - 【OA检查-综合判定】[1/4] 尝试Unpaywall...
+2026-03-22 09:14:26,828 - INFO - oa_checker - 【OA检查-Unpaywall】开始检查 DOI: 10.1016/j.ijporl.2026.112793
+2026-03-22 09:14:32,957 - INFO - oa_checker - 【OA检查-Unpaywall】检查完成 - 是否OA: False, 有URL: False
+2026-03-22 09:14:33,965 - INFO - oa_checker - 【OA检查-综合判定】✗ Unpaywall未确认OA或检查失败
+2026-03-22 09:14:33,966 - INFO - oa_checker - 【OA检查-综合判定】[2/4] 尝试PMC...
+2026-03-22 09:14:33,966 - INFO - oa_checker - 【OA检查-PMC】开始检查 PMID: 41861650
+2026-03-22 09:14:40,041 - INFO - oa_checker - 【OA检查-PMC】检查完成 - 是否OA: False, PMCID: None, 有URL: False
+2026-03-22 09:14:41,054 - INFO - oa_checker - 【OA检查-综合判定】✗ PMC未确认OA或检查失败
+2026-03-22 09:14:41,054 - INFO - oa_checker - 【OA检查-综合判定】[3/4] 尝试Europe PMC...
+2026-03-22 09:14:41,055 - INFO - oa_checker - 【OA检查-Europe PMC】开始检查 DOI: 10.1016/j.ijporl.2026.112793
+2026-03-22 09:14:47,251 - INFO - oa_checker - 【OA检查-Europe PMC】检查完成 - 未找到结果
+2026-03-22 09:14:48,259 - INFO - oa_checker - 【OA检查-综合判定】✗ Europe PMC未确认OA或检查失败
+2026-03-22 09:14:48,260 - INFO - oa_checker - 【OA检查-综合判定】[4/4] 尝试Crossref...
+2026-03-22 09:14:48,260 - INFO - oa_checker - 【OA检查-Crossref】开始检查 DOI: 10.1016/j.ijporl.2026.112793
+2026-03-22 09:14:54,326 - INFO - oa_checker - 【OA检查-Crossref】检查完成 - 是否OA: True, 有URL: False
+2026-03-22 09:14:55,332 - INFO - oa_checker - 【OA检查-综合判定】✓ Crossref确认OA，返回结果
+2026-03-22 09:14:55,333 - INFO - article_processor - 【OA检查】OAChecker返回结果 - 来源: crossref, 是否OA: True
+2026-03-22 09:14:55,334 - INFO - article_processor - 【OA检查】检查结果 - 来源: crossref, 是否OA: True, 是否有URL: False
+2026-03-22 09:14:55,334 - INFO - article_processor - 处理OA文献: 10.1016/j.ijporl.2026.112793
+2026-03-22 09:14:55,334 - WARNING - redirect_handler - 【OA重定向处理】oa_info 中既没有 url 也没有 doi
+2026-03-22 09:14:55,335 - INFO - oa_downloader - 【OA下载】未从 oa_info 获取到URL，尝试使用 DOI 通用重定向: 10.1016/j.ijporl.2026.112793
+2026-03-22 09:14:55,335 - INFO - redirect_handler - 【重定向处理-crossref】检测到DOI，构造URL: https://doi.org/10.1016/j.ijporl.2026.112793
+2026-03-22 09:15:06,767 - INFO - redirect_handler - 【重定向处理-crossref】HTTP状态码: 200
+2026-03-22 09:15:06,767 - INFO - redirect_handler - 【重定向获取链接-crossref】重定向完成
+2026-03-22 09:15:06,767 - INFO - redirect_handler - 【重定向获取链接-crossref】初始URL: 10.1016/j.ijporl.2026.112793
+2026-03-22 09:15:06,768 - INFO - redirect_handler - 【重定向获取链接-crossref】最终URL: https://linkinghub.elsevier.com/retrieve/pii/S0165587626000881
+2026-03-22 09:15:06,769 - INFO - oa_downloader - 【OA下载】通用重定向解析成功，最终链接: https://linkinghub.elsevier.com/retrieve/pii/S0165587626000881
+2026-03-22 09:15:06,770 - INFO - oa_downloader - 【OA下载】开始静态PDF提取: https://linkinghub.elsevier.com/retrieve/pii/S0165587626000881
+2026-03-22 09:15:06,770 - INFO - oa_downloader - 从HTML页面提取PDF: https://linkinghub.elsevier.com/retrieve/pii/S0165587626000881
+2026-03-22 09:15:12,854 - WARNING - oa_downloader - 未在HTML页面中找到PDF链接
+2026-03-22 09:15:12,856 - INFO - oa_downloader - 【OA下载】静态PDF提取失败，尝试使用Selenium进行动态下载: https://linkinghub.elsevier.com/retrieve/pii/S0165587626000881
+2026-03-22 09:15:12,857 - INFO - selenium_pdf_downloader - 使用undetected-chromedriver下载: https://linkinghub.elsevier.com/retrieve/pii/S0165587626000881
+2026-03-22 09:15:12,857 - INFO - selenium_pdf_downloader - 使用 undetected-chromedriver 初始化 Chrome（可绕过 Cloudflare 检测）
+2026-03-22 09:15:15,510 - INFO - undetected_chromedriver.patcher - patching driver executable C:\Users\laptop\appdata\roaming\undetected_chromedriver\undetected_chromedriver.exe
+2026-03-22 09:15:17,493 - INFO - selenium_pdf_downloader - undetected-chromedriver 初始化成功
+2026-03-22 09:15:17,497 - INFO - selenium_pdf_downloader - 使用undetected-chromedriver访问URL: https://linkinghub.elsevier.com/retrieve/pii/S0165587626000881
+2026-03-22 09:15:42,487 - INFO - selenium_pdf_downloader - 检测到Cloudflare验证页面，等待验证元素加载...
+2026-03-22 09:16:14,059 - WARNING - selenium_pdf_downloader - 未找到可点击的验证复选框，可能验证页面结构已变化或验证会自动通过
+2026-03-22 09:16:14,059 - INFO - selenium_pdf_downloader - 等待Cloudflare验证通过...
+2026-03-22 09:16:29,354 - WARNING - selenium_pdf_downloader - Cloudflare验证等待超时（15秒）
+2026-03-22 09:16:29,495 - WARNING - selenium_pdf_downloader - Cloudflare验证可能未完全通过，继续尝试下载...
+2026-03-22 09:16:30,637 - INFO - selenium_pdf_downloader - 检测到cookie弹窗，尝试自动处理...
+2026-03-22 09:16:40,638 - WARNING - selenium_pdf_downloader - 处理cookie弹窗已耗时 10.1 秒，停止进一步尝试，继续后续下载流程
+2026-03-22 09:16:40,638 - WARNING - selenium_pdf_downloader - 未找到可点击的接受Cookies按钮，可能cookie弹窗结构已变化或无需显式同意
+2026-03-22 09:16:40,638 - WARNING - selenium_pdf_downloader - Cookie弹窗可能未完全处理，继续尝试下载...
+2026-03-22 09:16:40,644 - INFO - selenium_pdf_downloader - 当前页面可能不是PDF，尝试查找PDF下载按钮或链接...
+2026-03-22 09:16:41,020 - WARNING - selenium_pdf_downloader - 未找到PDF下载按钮
+2026-03-22 09:16:41,075 - INFO - selenium_pdf_downloader - 等待PDF下载完成... (当前URL: https://www.sciencedirect.com/science/article/pii/S0165587626000881?via%3Dihub)
+2026-03-22 09:16:41,075 - INFO - selenium_pdf_downloader - 开始监控下载目录: literature_pdfs\oa\temp_downloads
+2026-03-22 09:17:01,236 - WARNING - selenium_pdf_downloader - 等待下载超时（20秒），未检测到下载文件
+2026-03-22 09:17:01,236 - WARNING - selenium_pdf_downloader - 未检测到下载文件，可能下载失败或页面需要人工操作
+2026-03-22 09:17:01,420 - WARNING - selenium_pdf_downloader - Selenium下载失败: 10.1016/j.ijporl.2026.112793
+2026-03-22 09:17:01,421 - WARNING - oa_downloader - 【OA下载】站点 linkinghub.elsevier.com 的 OA 自动下载失败，本次运行后续将跳过该站点上的 OA 文献（仅跳过 OA 通道，不影响其它下载层级）
+2026-03-22 09:17:01,421 - INFO - article_processor - 【OA下载】OA 下载失败，尝试使用 Google Scholar API 根据标题下载
+2026-03-22 09:17:01,421 - INFO - google_scholar_client - 【Google Scholar】开始根据标题搜索(使用 searchapi.io): Effective musical training protocols for the rehabilitation of children with coc...
+2026-03-22 09:17:08,970 - WARNING - google_scholar_client - Google Scholar 搜索结果中未找到可用资源链接
+2026-03-22 09:17:09,979 - ERROR - article_processor - 【Google Scholar】下载失败: Google Scholar 搜索结果中未找到可用资源链接
+2026-03-22 09:17:10,202 - WARNING - download_recorder - 标记DOI为下载失败: 10.1016/j.ijporl.2026.112793 (原因: Google Scholar 搜索结果中未找到可用资源链接)
+2026-03-22 09:17:10,202 - ERROR - article_processor - ✗ 文献处理失败: Google Scholar 搜索结果中未找到可用资源链接
+2026-03-22 09:17:11,216 - INFO - article_processor - 【OA检查】开始检查DOI 10.1002/alz.71294 的OA状态...
+2026-03-22 09:17:11,217 - INFO - article_processor - 【OA检查】调用OAChecker.check_oa - DOI: 10.1002/alz.71294, PMID: 41859874, Title: Identifying neuropathologic disease in primary progressive aphasia using narrative speech.
+2026-03-22 09:17:11,217 - INFO - article_processor - 【OA检查】OAChecker将按顺序尝试以下方法:
+2026-03-22 09:17:11,217 - INFO - article_processor -   [1] check_unpaywall - Unpaywall API检查
+2026-03-22 09:17:11,217 - INFO - article_processor -   [2] check_pmc - PMC检查 (PMID: 41859874)
+2026-03-22 09:17:11,217 - INFO - article_processor -   [3] check_europe_pmc - Europe PMC检查
+2026-03-22 09:17:11,217 - INFO - article_processor -   [4] check_crossref - Crossref检查
+2026-03-22 09:17:11,218 - INFO - oa_checker - 【OA检查-综合判定】开始综合判定OA状态 - DOI: 10.1002/alz.71294
+2026-03-22 09:17:11,218 - INFO - oa_checker - 【OA检查-综合判定】[1/4] 尝试Unpaywall...
+2026-03-22 09:17:11,218 - INFO - oa_checker - 【OA检查-Unpaywall】开始检查 DOI: 10.1002/alz.71294
+2026-03-22 09:17:17,088 - INFO - oa_checker - 【OA检查-Unpaywall】检查完成 - 是否OA: True, 有URL: True
+2026-03-22 09:17:18,100 - INFO - oa_checker - 【OA检查-综合判定】✓ Unpaywall确认OA，返回结果
+2026-03-22 09:17:18,101 - INFO - article_processor - 【OA检查】OAChecker返回结果 - 来源: unpaywall, 是否OA: True
+2026-03-22 09:17:18,101 - INFO - article_processor - 【OA检查】检查结果 - 来源: unpaywall, 是否OA: True, 是否有URL: True
+2026-03-22 09:17:18,101 - INFO - article_processor - 处理OA文献: 10.1002/alz.71294
+2026-03-22 09:17:18,101 - INFO - oa_downloader - 【OA下载】检测到OA检查结果中的URL，尝试直接下载: https://doi.org/10.1002/alz.71294
+2026-03-22 09:17:18,101 - INFO - pdf_utils - 直接下载PDF: https://doi.org/10.1002/alz.71294
+2026-03-22 09:17:29,483 - ERROR - pdf_utils - 直接下载PDF失败 - HTTP错误 unknown: 403 Client Error: Forbidden for url: https://alz-journals.onlinelibrary.wiley.com/doi/10.1002/alz.71294
+2026-03-22 09:17:29,489 - INFO - redirect_handler - 【OA重定向处理】使用OA检查结果，直接返回链接: https://doi.org/10.1002/alz.71294
+2026-03-22 09:17:29,490 - INFO - oa_downloader - 【OA下载】开始静态PDF提取: https://doi.org/10.1002/alz.71294
+2026-03-22 09:17:29,490 - INFO - oa_downloader - 从HTML页面提取PDF: https://doi.org/10.1002/alz.71294
+2026-03-22 09:17:39,828 - ERROR - oa_downloader - 从HTML页面提取PDF失败: 403 Client Error: Forbidden for url: https://alz-journals.onlinelibrary.wiley.com/doi/10.1002/alz.71294
+2026-03-22 09:17:39,831 - INFO - oa_downloader - 【OA下载】静态PDF提取失败，尝试使用Selenium进行动态下载: https://doi.org/10.1002/alz.71294
+2026-03-22 09:17:39,832 - INFO - selenium_pdf_downloader - 使用undetected-chromedriver下载: https://doi.org/10.1002/alz.71294
+2026-03-22 09:17:39,833 - INFO - selenium_pdf_downloader - 使用 undetected-chromedriver 初始化 Chrome（可绕过 Cloudflare 检测）
+2026-03-22 09:17:43,795 - INFO - undetected_chromedriver.patcher - patching driver executable C:\Users\laptop\appdata\roaming\undetected_chromedriver\undetected_chromedriver.exe
+2026-03-22 09:17:45,929 - INFO - selenium_pdf_downloader - undetected-chromedriver 初始化成功
+2026-03-22 09:17:45,929 - INFO - selenium_pdf_downloader - 使用undetected-chromedriver访问URL: https://doi.org/10.1002/alz.71294
+2026-03-22 09:18:45,947 - ERROR - selenium_pdf_downloader - 页面加载超时（60秒）: Message: timeout: Timed out receiving message from renderer: 43.115
+  (Session info: chrome=146.0.7680.81)
+Stacktrace:
+	undetected_chromedriver!GetHandleVerifier [0x687c13+10dd3]
+	undetected_chromedriver!GetHandleVerifier [0x687d44+10f04]
+	undetected_chromedriver!(No symbol) [0x461f50]
+	undetected_chromedriver!(No symbol) [0x4522e3]
+	undetected_chromedriver!(No symbol) [0x452015]
+	undetected_chromedriver!(No symbol) [0x450128]
+	undetected_chromedriver!(No symbol) [0x450976]
+	undetected_chromedriver!(No symbol) [0x45d7fb]
+	undetected_chromedriver!(No symbol) [0x46f58e]
+	undetected_chromedriver!(No symbol) [0x474ff6]
+	undetected_chromedriver!(No symbol) [0x450ffc]
+	undetected_chromedriver!(No symbol) [0x46f33f]
+	undetected_chromedriver!(No symbol) [0x4eaafa]
+	undetected_chromedriver!(No symbol) [0x4cd6a6]
+	undetected_chromedriver!(No symbol) [0x4a0029]
+	undetected_chromedriver!(No symbol) [0x4a0de4]
+	undetected_chromedriver!GetHandleVerifier [0x8e4509+26d6c9]
+	undetected_chromedriver!GetHandleVerifier [0x8dfb43+268d03]
+	undetected_chromedriver!GetHandleVerifier [0x8fd85b+286a1b]
+	undetected_chromedriver!GetHandleVerifier [0x6a1668+2a828]
+	undetected_chromedriver!GetHandleVerifier [0x6a97fd+329bd]
+	undetected_chromedriver!GetHandleVerifier [0x690588+19748]
+	undetected_chromedriver!GetHandleVerifier [0x690752+19912]
+	undetected_chromedriver!GetHandleVerifier [0x6799da+2b9a]
+	KERNEL32!BaseThreadInitThunk [0x76f85d49+19]
+	ntdll!RtlInitializeExceptionChain [0x778bd81b+6b]
+	ntdll!RtlGetAppContainerNamedObjectPath [0x778bd7a1+231]
+
+2026-03-22 09:18:46,093 - WARNING - selenium_pdf_downloader - Selenium下载失败: 10.1002/alz.71294
+2026-03-22 09:18:46,093 - INFO - article_processor - 【OA下载】OA 下载失败，尝试使用 Google Scholar API 根据标题下载
+2026-03-22 09:18:46,093 - INFO - google_scholar_client - 【Google Scholar】开始根据标题搜索(使用 searchapi.io): Identifying neuropathologic disease in primary progressive aphasia using narrati...
+2026-03-22 09:18:53,647 - INFO - uc - ensuring close
+2026-03-22 09:18:53,648 - INFO - uc - ensuring close
+2026-03-22 09:18:53,648 - INFO - uc - ensuring close

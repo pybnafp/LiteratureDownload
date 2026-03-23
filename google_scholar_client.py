@@ -27,18 +27,21 @@ class GoogleScholarClient:
         save_dir: str = "literature_pdfs/google_scholar",
         timeout: int = 60,
         delay: float = 1.0,
+        selenium_headless: bool = True,
     ):
         """
         :param api_key: searchapi.io API Key
         :param save_dir: 通过 Google Scholar 下载的 PDF 保存目录
         :param timeout: 网络请求超时时间
         :param delay: 请求间延迟，避免触发限流
+        :param selenium_headless: Scholar 兜底用 Selenium 时是否无头（服务器/SSH 建议 True）
         """
         self.api_key = api_key
         self.save_dir = Path(save_dir)
         self.save_dir.mkdir(parents=True, exist_ok=True)
         self.timeout = timeout
         self.delay = delay
+        self.selenium_headless = selenium_headless
         # 复用 SeleniumDownloader，在直接下载失败时用 undetected-chromedriver 再尝试一次
         self._selenium_downloader: Optional[SeleniumDownloader] = None
 
@@ -48,10 +51,10 @@ class GoogleScholarClient:
             self._selenium_downloader = SeleniumDownloader(
                 download_dir=str(self.save_dir),
                 timeout=self.timeout,
-                headless=False,
+                headless=self.selenium_headless,
                 wait_time=20,
                 use_undetected=True,
-                auto_fallback=False,
+                auto_fallback=True,
             )
         return self._selenium_downloader
 
