@@ -26,6 +26,10 @@ __pycache__/
 # 忽略.cursorignore文件
 .cursorignore
 
-# 忽略literature_pdfs目录下的oa目录和non_oa目录
+# 忽略literature_pdfs目录下的oa目录和non_oa目录、google_scholar目录
 literature_pdfs/oa/*
 literature_pdfs/non_oa/*
+literature_pdfs/google_scholar/*
+
+# 忽略.vscode目录
+.vscode/
