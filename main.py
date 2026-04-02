@@ -17,7 +17,6 @@ from pubmed_search import PubMedSearcher
 from download_recorder import DownloadRecorder
 from oa_checker import OAChecker
 from oa_downloader import OADownloader
-from non_oa_downloader import NonOADownloader
 from article_processor import ArticleProcessor
 from google_scholar_client import GoogleScholarClient
 from logging_config import setup_logging
@@ -42,9 +41,9 @@ class LiteratureDownloader:
         pdf_save_dir: str = "literature_pdfs",
         download_delay: float = 1.0,
         timeout: int = 60,
-        use_selenium_fallback: bool = False,
         selenium_headless: bool = True,
         use_llm_for_references: bool = True,
+        test_mode: bool = False,
     ):
         """
         初始化文献下载器
@@ -53,9 +52,9 @@ class LiteratureDownloader:
         :param pdf_save_dir: PDF保存目录
         :param download_delay: 下载延迟（秒）
         :param timeout: 下载超时时间（秒）
-        :param use_selenium_fallback: 是否在requests失败时使用Selenium作为备选方案
         :param selenium_headless: Selenium是否使用无头模式（不显示浏览器窗口）
         :param use_llm_for_references: 是否使用 LLM 解析参考文献 raw_citation（关闭可加快测试）
+        :param test_mode: 测试模式（强制重新下载所有文献，不跳过已下载的，用于快速测试）
         """
         # PubMed搜索器（LLM 解析缓存放在 literature_pdfs 下，以 raw_citation/title/pmid/doi 复用结果）
         llm_cache_path = str(Path(pdf_save_dir) / "llm_reference_cache.csv")
@@ -71,22 +70,13 @@ class LiteratureDownloader:
         
         # OA下载器（用于OA文献的分类型批量下载）
         self.oa_downloader = OADownloader(
-            save_dir=str(Path(pdf_save_dir) / "oa"),
+            download_dir=str(Path(pdf_save_dir) / "oa"),
             email=email,
             timeout=timeout,
             delay=download_delay,
-            use_selenium_fallback=use_selenium_fallback,
             selenium_headless=selenium_headless
         )
-        
-        # 非OA下载器（用于非OA文献的分层级批量下载）
-        self.non_oa_downloader = NonOADownloader(
-            save_dir=str(Path(pdf_save_dir) / "non_oa"),
-            timeout=timeout,
-            delay=download_delay,
-            use_institutional_access=False,  # 暂时不支持，保留接口
-        )
-        
+
         # 下载记录器（使用CSV文件替代JSON）
         self.recorder = DownloadRecorder(pdf_save_dir=pdf_save_dir)
 
@@ -106,9 +96,9 @@ class LiteratureDownloader:
         self.article_processor = ArticleProcessor(
             oa_checker=self.oa_checker,
             oa_downloader=self.oa_downloader,
-            non_oa_downloader=self.non_oa_downloader,
             recorder=self.recorder,
             google_scholar_client=self.google_scholar_client,
+            test_mode=test_mode,
         )
         
         self.pdf_save_dir = Path(pdf_save_dir)
@@ -565,7 +555,6 @@ if __name__ == "__main__":
     TIMEOUT = 60  # 下载超时时间（秒）
     
     # Selenium设置（用于解决反爬虫限制）
-    USE_SELENIUM_FALLBACK = True  # 是否在requests失败时使用Selenium作为备选方案
     # 默认无头、不弹 Chrome 窗口；本地调试可在 .env 设置 SELENIUM_HEADLESS=false
     _hl = (os.getenv("SELENIUM_HEADLESS", "true") or "true").strip().lower()
     SELENIUM_HEADLESS = _hl not in ("0", "false", "no", "off")
@@ -585,7 +574,6 @@ if __name__ == "__main__":
         pdf_save_dir=PDF_SAVE_DIR,
         download_delay=DOWNLOAD_DELAY,
         timeout=TIMEOUT,
-        use_selenium_fallback=USE_SELENIUM_FALLBACK,
         selenium_headless=SELENIUM_HEADLESS,
         use_llm_for_references=USE_LLM_FOR_REFERENCES,
     )

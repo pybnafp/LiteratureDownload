@@ -7,6 +7,8 @@ import time
 from typing import Optional, Dict
 
 import requests
+from utils import clean_doi
+
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
@@ -24,36 +26,20 @@ class OAChecker:
         self.email = email
         self.timeout = timeout
         self.delay = delay
-    
+
     def _get_headers(self) -> Dict[str, str]:
         """
         生成请求headers，模拟真实浏览器请求以避免IP封禁
+        return: HTTP请求头字典
         """
-        return {
-            'User-Agent': f'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 (mailto:{self.email})',
-            'Accept': 'application/json, text/plain, */*',
-            'Accept-Language': 'en-US,en;q=0.9,zh-CN;q=0.8,zh;q=0.7',
-            'Accept-Encoding': 'gzip, deflate, br',
-            'Connection': 'keep-alive',
-            'Referer': 'https://www.google.com/',
-            'Sec-Fetch-Dest': 'empty',
-            'Sec-Fetch-Mode': 'cors',
-            'Sec-Fetch-Site': 'cross-site',
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            "Accept": "application/pdf,text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+            "Accept-Language": "en-US,en;q=0.5",
+            "Accept-Encoding": "gzip, deflate, br",
+            "Connection": "keep-alive",
         }
-    
-    @staticmethod
-    def _clean_doi(doi: str) -> str:
-        doi = (doi or "").strip()
-        if doi.startswith("http"):
-            if "doi.org/" in doi:
-                doi = doi.split("doi.org/")[-1]
-            elif "dx.doi.org/" in doi:
-                doi = doi.split("dx.doi.org/")[-1]
-            elif "/doi/" in doi:
-                doi = doi.split("/doi/")[-1]
-        if "?" in doi:
-            doi = doi.split("?")[0]
-        return doi
+        return headers
     
     def check_unpaywall(self, doi: str) -> Optional[Dict]:
         """
@@ -61,8 +47,8 @@ class OAChecker:
         :param doi: 文献DOI
         :return: 包含OA检查结果的字典，如果检查失败则返回None
         """
-        # clean_doi = self._clean_doi(doi)
-        url = f"https://api.unpaywall.org/v2/{doi}?email={self.email}"
+        clean_doi_value = clean_doi(doi)
+        url = f"https://api.unpaywall.org/v2/{clean_doi_value}?email={self.email}"
         headers = self._get_headers()
         logger.info(f"【OA检查-Unpaywall】开始检查 DOI: {doi}")
         try:
@@ -90,19 +76,19 @@ class OAChecker:
     
     def check_crossref(self, doi: str) -> Optional[Dict]:
         """Crossref: https://api.crossref.org/works/{DOI}"""
-        # clean_doi = self._clean_doi(doi)
-        url = f"https://api.crossref.org/works/{doi}"
+        clean_doi_value = clean_doi(doi)
+        url = f"https://api.crossref.org/works/{clean_doi_value}"
         logger.info(f"【OA检查-Crossref】开始检查 DOI: {doi}")
         try:
             resp = requests.get(url, headers=self._get_headers(), timeout=self.timeout)
             resp.raise_for_status()
             data = resp.json()
-            message = data.get("message", {}) if isinstance(data, dict) else {}
+            message = data.get("message", {})
             access = message.get("access", {})
-            is_open_access = (isinstance(access, dict) and access.get("type") == "open") or bool(message.get("license"))
+            is_open_access = access.get("type") == "open"
             # 尝试取到可能的PDF直链
             pdf_url = None
-            links = message.get("link", []) or []
+            links = message.get("link", [])
             for link in links:
                 ct = (link.get("content-type") or "").lower()
                 u = link.get("URL")
@@ -113,7 +99,7 @@ class OAChecker:
                 "source": "crossref",
                 "is_oa": bool(is_open_access),
                 "url": pdf_url,
-                "license": (message.get("license", [{}]) or [{}])[0].get("URL") if message.get("license") else None,
+                "license": message.get("license", ""),
                 "raw": message
             }
             logger.info(f"【OA检查-Crossref】检查完成 - 是否OA: {bool(is_open_access)}, 有URL: {bool(pdf_url)}")
@@ -140,7 +126,7 @@ class OAChecker:
             resp = requests.get(url, params=params, headers=self._get_headers(), timeout=self.timeout)
             resp.raise_for_status()
             data = resp.json()
-            result_obj = (data.get("result") or {})
+            result_obj = data.get("result") or {}
             # esummary返回的键通常包含 "uids": ["XXXX"], 然后每个UID是对象
             uids = result_obj.get("uids") or []
             open_access_flag = False
@@ -150,7 +136,7 @@ class OAChecker:
                 rec = result_obj.get(str(uid)) or {}
                 # 规范中提到了 open_access 字段
                 # 不同返回结构可能为 "isOpenAccess" 或 "open_access"，这里尽量兼容
-                open_access_flag = bool(rec.get("open_access") or rec.get("isOpenAccess") or rec.get("is_open_access")) or open_access_flag
+                open_access_flag = bool(rec.get("open_access") or rec.get("isOpenAccess") or rec.get("is_open_access")) or False
                 pmcid = rec.get("pmcid") or pmcid
             if pmcid:
                 pdf_url = f"https://www.ncbi.nlm.nih.gov/pmc/articles/{pmcid}/pdf"
@@ -250,31 +236,32 @@ class OAChecker:
         if upw and upw.get("is_oa"):
             logger.info(f"【OA检查-综合判定】✓ Unpaywall确认OA，返回结果")
             return upw
-        logger.info(f"【OA检查-综合判定】✗ Unpaywall未确认OA或检查失败")
-        
-        # 2) PMC（若提供PMID）
-        logger.info(f"【OA检查-综合判定】[2/4] 尝试PMC...")
-        pmc_res = self.check_pmc(pmid)
-        if pmc_res and pmc_res.get("is_oa"):
-            logger.info(f"【OA检查-综合判定】✓ PMC确认OA，返回结果")
-            return pmc_res
-        logger.info(f"【OA检查-综合判定】✗ PMC未确认OA或检查失败")
-        
-        # 3) Europe PMC
-        logger.info(f"【OA检查-综合判定】[3/4] 尝试Europe PMC...")
-        eu_res = self.check_europe_pmc(doi=doi, pmid=pmid, title=title)
-        if eu_res and eu_res.get("is_oa"):
-            logger.info(f"【OA检查-综合判定】✓ Europe PMC确认OA，返回结果")
-            return eu_res
-        logger.info(f"【OA检查-综合判定】✗ Europe PMC未确认OA或检查失败")
-        
-        # 4) Crossref
+        logger.info(f"【OA检查-综合判定】✗ Unpaywall检查失败")
+
+        # 2) Crossref
         logger.info(f"【OA检查-综合判定】[4/4] 尝试Crossref...")
         cr = self.check_crossref(doi)
         if cr and cr.get("is_oa"):
             logger.info(f"【OA检查-综合判定】✓ Crossref确认OA，返回结果")
             return cr
-        logger.info(f"【OA检查-综合判定】✗ Crossref未确认OA或检查失败")
+        logger.info(f"【OA检查-综合判定】✗ Crossref检查失败")
+        
+        # 3) PMC（若提供PMID）
+        logger.info(f"【OA检查-综合判定】[2/4] 尝试PMC...")
+        pmc_res = self.check_pmc(pmid)
+        if pmc_res and pmc_res.get("is_oa"):
+            logger.info(f"【OA检查-综合判定】✓ PMC确认OA，返回结果")
+            return pmc_res
+        logger.info(f"【OA检查-综合判定】✗ PMC检查失败")
+        
+        # 4) Europe PMC
+        logger.info(f"【OA检查-综合判定】[3/4] 尝试Europe PMC...")
+        eu_res = self.check_europe_pmc(doi=doi, pmid=pmid, title=title)
+        if eu_res and eu_res.get("is_oa"):
+            logger.info(f"【OA检查-综合判定】✓ Europe PMC确认OA，返回结果")
+            return eu_res
+        logger.info(f"【OA检查-综合判定】✗ Europe PMC检查失败")
+        
         
         # 全部否定或失败：返回最后一次成功的非OA信息或统一否定
         final_result = {
@@ -284,7 +271,7 @@ class OAChecker:
             "license": None,
             "raw": None
         }
-        logger.info(f"【OA检查-综合判定】所有方法均未确认OA，返回非OA结果")
+        logger.info(f"【OA检查-综合判定】所有方法均检查失败，返回非OA结果")
         return final_result
 
 

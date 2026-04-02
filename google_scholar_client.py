@@ -9,8 +9,8 @@ from typing import Optional, Dict, Any, List
 
 import requests
 
-from pdf_utils import PDFUtils
-from selenium_pdf_downloader import SeleniumDownloader
+from oa_downloader import OADownloader
+from utils import generate_filename
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
@@ -42,21 +42,15 @@ class GoogleScholarClient:
         self.timeout = timeout
         self.delay = delay
         self.selenium_headless = selenium_headless
-        # 复用 SeleniumDownloader，在直接下载失败时用 undetected-chromedriver 再尝试一次
-        self._selenium_downloader: Optional[SeleniumDownloader] = None
+        # 在直接下载失败时用 undetected-chromedriver 再尝试一次
+        self.oa_downloader = OADownloader(
+            download_dir=self.save_dir,
+            email="",
+            timeout=self.timeout,
+            delay=self.delay,
+            selenium_headless=selenium_headless
+        )
 
-    def _get_or_create_selenium_downloader(self) -> SeleniumDownloader:
-        """懒加载 SeleniumDownloader，用于 Google Scholar 兜底下载"""
-        if self._selenium_downloader is None:
-            self._selenium_downloader = SeleniumDownloader(
-                download_dir=str(self.save_dir),
-                timeout=self.timeout,
-                headless=self.selenium_headless,
-                wait_time=20,
-                use_undetected=True,
-                auto_fallback=True,
-            )
-        return self._selenium_downloader
 
     @staticmethod
     def _pick_best_resource_link(data: Any) -> Optional[str]:
@@ -129,7 +123,7 @@ class GoogleScholarClient:
             "q": title,
         }
 
-        logger.info(f"【Google Scholar】开始根据标题搜索(使用 searchapi.io): {title[:80]}...")
+        logger.info(f"【Google Scholar】开始根据标题搜索(使用 searchapi.io): {title}...")
         try:
             resp = requests.get(self.BASE_URL, params=params, timeout=self.timeout)
             resp.raise_for_status()
@@ -145,7 +139,7 @@ class GoogleScholarClient:
 
             # 生成文件名：优先使用 DOI，其次标题
             base_id = doi if doi else title
-            filename = PDFUtils.generate_filename(base_id, year, "google_scholar")
+            filename = generate_filename(base_id, year, "google_scholar")
             save_path = self.save_dir / filename
 
             # 已存在则直接认为成功
@@ -156,7 +150,7 @@ class GoogleScholarClient:
                 return result
 
             # 第一步：无论 resource.format 是 PDF / HTML / 其它，先直接尝试下载
-            direct_ok = PDFUtils.download_pdf_direct(
+            direct_ok = self.oa_downloader.download_pdf_direct(
                 candidate_url,
                 save_path,
                 timeout=self.timeout,
@@ -167,31 +161,30 @@ class GoogleScholarClient:
                 logger.info(f"【Google Scholar】直接下载成功(HTTP直连下载): {save_path}")
                 result["success"] = True
                 result["filepath"] = str(save_path)
-            else:
-                logger.info("【Google Scholar】直接下载失败，将使用 undetected-chromedriver 兜底下载")
-                # 第二步：使用 Selenium + undetected-chromedriver 再尝试一次
-                selenium_downloader = self._get_or_create_selenium_downloader()
-                selenium_path = selenium_downloader.download_pdf(
-                    pdf_url=candidate_url,
-                    doi=base_id,
-                    year=year,
-                    source="google_scholar",
+                return result
+            
+            # 第二步：使用uc进行下载
+            logger.info("【Google Scholar】直接下载失败，将使用 undetected-chromedriver 下载")
+            
+            selenium_path = self.oa_downloader._download_with_selenium(
+                pdf_url=candidate_url,
+                doi=base_id,
+                year=year,
+                source="google_scholar",
+            )
+            if selenium_path and Path(selenium_path).exists():
+                logger.info(
+                    f"【Google Scholar】Selenium 下载成功(undetected-chromedriver): {selenium_path}"
                 )
-                if selenium_path and Path(selenium_path).exists():
-                    logger.info(
-                        f"【Google Scholar】Selenium 下载成功(undetected-chromedriver): {selenium_path}"
-                    )
-                    result["success"] = True
-                    result["filepath"] = str(selenium_path)
-                else:
-                    result["error"] = "Google Scholar 直接下载与 Selenium 下载均失败"
-                    logger.warning(f"【Google Scholar】{result['error']}")
-
+                result["success"] = True
+                result["filepath"] = str(selenium_path)
+                return result
         except Exception as e:
             result["error"] = f"调用 Google Scholar API 失败: {e}"
             logger.error(result["error"])
         finally:
             time.sleep(self.delay)
-
+        result["error"] = "Google Scholar 直接下载与 Selenium 下载均失败"
+        logger.warning(f"【Google Scholar】{result['error']}")
         return result
 

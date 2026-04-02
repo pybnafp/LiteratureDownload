@@ -1,6 +1,6 @@
 """
 PubMed 搜索模块
-通过关键词在 PubMed 搜索，获取文献的 DOI 等；按标题查找文献（find_article_by_title）使用 Crossref API 获取 DOI。
+通过关键词在 PubMed 搜索，获取文献的 DOI 等
 """
 import requests
 import time
@@ -54,43 +54,21 @@ class PubMedSearcher:
         query: str,
         max_results: int = 100,
         retstart: int = 0,
-        random_start: bool = False,
+        random_start_max: int = 10,
     ) -> List[Dict]:
         """
         在PubMed中搜索文献
         :param query: 搜索关键词（如 "speech disorder"）
         :param max_results: 最大返回结果数
         :param retstart: 起始位置（用于分页）
-        :param random_start: 是否在允许范围内随机选择起始位置，以减少多次运行时的检索重叠
+        :param random_start_max: 在指定范围内随机选择起始位置
         :return: 文献信息列表，每个包含pmid, title, doi等
         """
         print(f"正在PubMed搜索：{query}")
         
-        # 若需要随机窗口，先做一次仅返回 count 的轻量查询，估计可用范围
-        if random_start and retstart == 0:
-            try:
-                count_params = {
-                    "db": "pubmed",
-                    "term": query,
-                    "retmode": "json",
-                    "retmax": 0,
-                    "retstart": 0,
-                    "email": self.email,
-                }
-                if self.api_key:
-                    count_params["api_key"] = self.api_key
-                count_resp = requests.get(self.SEARCH_URL, params=count_params, timeout=20)
-                count_resp.raise_for_status()
-                count_data = count_resp.json()
-                total_count = int(count_data.get("esearchresult", {}).get("count", 0))
-                if total_count > max_results:
-                    max_start = max(0, total_count - max_results)
-                    # 在可选范围内随机一个起点，尽量避免每次都是第一页
-                    retstart = random.randint(0, max_start)
-            except Exception:
-                # 统计失败时静默退回默认 retstart=0
-                retstart = 0
-        
+        # 在random_start_max范围内随机一个起点，尽量避免每次都是第一页
+        retstart = random.randint(0, random_start_max)
+         
         # 第一步：搜索获取PMID列表
         search_params = {
             "db": "pubmed",
@@ -312,8 +290,8 @@ class PubMedSearcher:
     def parse_references(self, article_element) -> List[Dict]:
         """
         从 PubMed 的 PubmedArticle XML 元素中解析参考文献列表。
-        若 XML/正则 中已有 DOI 或 PMID，直接使用；仅当两者皆无且 use_llm_for_references=True 时才调用通义大模型。
-        关闭 LLM 时，无 DOI/PMID 的引用仅用 raw_citation 作为 title，便于全流程测试且不依赖 API。
+        当 use_llm_for_references=True 时才调用通义大模型。
+        关闭 LLM 时，仅用 raw_citation 作为 title，便于全流程测试且不依赖 API。
 
         :param article_element: PubmedArticle XML 元素
         :return: 参考文献列表，每条包含 title/raw_citation/pmid/doi/author/journal
@@ -332,55 +310,28 @@ class PubMedSearcher:
                 else ""
             )
 
-            # 解析结构化的 ArticleId（如果有）
-            ref_pmid = ""
-            ref_doi = ""
-            for ref_id in ref.findall("./ArticleIdList/ArticleId"):
-                id_type = ref_id.get("IdType")
-                if id_type == "pubmed" and not ref_pmid:
-                    ref_pmid = (ref_id.text or "").strip()
-                elif id_type == "doi" and not ref_doi:
-                    ref_doi = (ref_id.text or "").strip()
-
-            # 若 XML 中没有给 ArticleId，但在 Citation 文本中出现 DOI，则尽量用正则再抓一次
-            if not ref_doi and raw_citation:
-                m = re.search(r"10\.\d{4,9}/[^\s]+", raw_citation)
-                if m:
-                    ref_doi = m.group(0)
-
-            # 若已有 DOI 或 PMID，直接用 XML/正则 结果
-            if ref_doi or ref_pmid:
-                parsed = {
-                    "title": raw_citation,
-                    "doi": ref_doi,
-                    "pmid": ref_pmid,
-                    "author": "",
-                    "journal": "",
-                }
-            elif self.use_llm_for_references and self.llm_reference_parser:
+            if self.use_llm_for_references:
                 parsed = self.llm_reference_parser.parse(
-                    raw_citation=raw_citation,
-                    ref_doi=ref_doi,
-                    ref_pmid=ref_pmid,
+                    raw_citation=raw_citation
                 )
             else:
                 # 未启用 LLM 时仅用 raw_citation 作为 title，供后续按标题检索
                 parsed = {
                     "title": raw_citation,
-                    "doi": ref_doi,
-                    "pmid": ref_pmid,
+                    "doi": "",
+                    "pmid": "",
                     "author": "",
                     "journal": "",
                 }
 
             # 只要有任意一项信息就记录下来
-            if raw_citation or ref_pmid or ref_doi:
+            if raw_citation:
                 references.append(
                     {
                         "title": parsed.get("title") or raw_citation,
                         "raw_citation": raw_citation,
-                        "pmid": parsed.get("pmid") or ref_pmid,
-                        "doi": parsed.get("doi") or ref_doi,
+                        "pmid": parsed.get("pmid") or "",
+                        "doi": parsed.get("doi") or "",
                         "author": parsed.get("author") or "",
                         "journal": parsed.get("journal") or "",
                     }
@@ -477,4 +428,3 @@ class PubMedSearcher:
         print(f"DOI列表已保存到：{output_csv}")
         
         return articles_with_doi
-

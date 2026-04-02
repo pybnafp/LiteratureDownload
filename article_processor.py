@@ -1,14 +1,16 @@
 """
-文献处理器模块
+文献处理器
 处理OA判断、下载策略选择和下载协调
 """
 import logging
 from typing import Optional, Dict
 from pathlib import Path
+from urllib.parse import urlparse, urljoin
 
+import requests
+from bs4 import BeautifulSoup
 from oa_checker import OAChecker
 from oa_downloader import OADownloader
-from non_oa_downloader import NonOADownloader
 from download_recorder import DownloadRecorder
 from google_scholar_client import GoogleScholarClient
 
@@ -22,134 +24,25 @@ class ArticleProcessor:
         self,
         oa_checker: OAChecker,
         oa_downloader: OADownloader,
-        non_oa_downloader: NonOADownloader,
         recorder: DownloadRecorder,
         google_scholar_client: Optional[GoogleScholarClient] = None,
+        test_mode: bool = False,
     ):
         """
         初始化文献处理器
         :param oa_checker: OA判定器
         :param oa_downloader: OA下载器
-        :param non_oa_downloader: 非OA下载器
         :param recorder: 下载记录器
+        :param google_scholar_client: Google Scholar API 客户端（可选）
+        :param test_mode: 测试模式（强制重新下载所有文献，不跳过已下载的）
         """
         self.oa_checker = oa_checker
         self.oa_downloader = oa_downloader
-        self.non_oa_downloader = non_oa_downloader
         self.recorder = recorder
         # Google Scholar API 客户端，用于在 OA 下载失败后根据标题再尝试一次
         self.google_scholar_client = google_scholar_client
-    
-    def check_oa_status(self, doi: str, article_info: Optional[Dict] = None) -> Dict:
-        """
-        检查文献的OA状态（详细记录过程）
-        :param doi: 文献DOI
-        :param article_info: 文献信息（包含pmid, title等）
-        :return: OA检查结果字典
-        """
-        pmid = (article_info or {}).get('pmid') if article_info else None
-        title = (article_info or {}).get('title') if article_info else None
-        
-        logger.info(f"【OA检查】调用OAChecker.check_oa - DOI: {doi}, PMID: {pmid}, Title: {title if title else None}")
-        
-        # 详细记录OAChecker内部调用的方法
-        logger.info(f"【OA检查】OAChecker将按顺序尝试以下方法:")
-        logger.info(f"  [1] check_unpaywall - Unpaywall API检查")
-        if pmid:
-            logger.info(f"  [2] check_pmc - PMC检查 (PMID: {pmid})")
-        else:
-            logger.info(f"  [2] check_pmc - 跳过 (无PMID)")
-        logger.info(f"  [3] check_europe_pmc - Europe PMC检查")
-        logger.info(f"  [4] check_crossref - Crossref检查")
-        
-        oa_check = self.oa_checker.check_oa(doi, pmid=pmid, title=title)
-        
-        # 记录检查结果
-        if oa_check.get('source') is not None:
-            logger.info(f"【OA检查】OAChecker返回结果 - 来源: {oa_check.get('source', 'unknown')}, "
-                      f"是否OA: {oa_check.get('is_oa', False)}")
-        else:
-            logger.warning(f"【OA检查】OAChecker返回None，返回非OA结果")
-        
-        return {
-            'is_oa': oa_check.get('is_oa', False) if oa_check else False,
-            'oa_info': oa_check,
-            'source': oa_check.get('source') if oa_check else None,
-            'pdf_url': oa_check.get('url') if oa_check else None
-        }
-    
-    def process_oa_article(
-        self,
-        doi: str,
-        oa_info: Dict,
-        article_info: Optional[Dict] = None
-    ) -> Optional[str]:
-        """
-        处理OA文献下载
-        :param doi: 文献DOI
-        :param oa_info: OA信息
-        :param article_info: 文献信息
-        :return: 下载的文件路径或None
-        """
-        logger.info(f"处理OA文献: {doi}")
-        
-        year = (article_info or {}).get('year')
-        title = (article_info or {}).get('title')
-        pmid = (article_info or {}).get('pmid')
-        
-        filepath = self.oa_downloader.download_oa(
-            oa_info=oa_info,
-            doi=doi,
-            year=year,
-            title=title,
-            pmid=pmid
-        )
-        
-        return filepath
-    
-    def process_non_oa_article(
-        self,
-        doi: str,
-        article_info: Optional[Dict] = None
-    ) -> Optional[str]:
-        """
-        处理非OA文献下载
-        :param doi: 文献DOI
-        :param article_info: 文献信息
-        :return: 下载的文件路径或None
-        """
-        logger.info(f"处理非OA文献: {doi}")
-        
-        year = (article_info or {}).get('year')
-        title = (article_info or {}).get('title')
-        journal = (article_info or {}).get('journal')
-        publisher = (article_info or {}).get('publisher')
-        
-        filepath = self.non_oa_downloader.download_non_oa(
-            doi=doi,
-            year=year,
-            title=title,
-            journal=journal,
-            publisher=publisher
-        )
-        
-        return filepath
-    
-    def extract_source_from_filepath(self, filepath: str) -> str:
-        """
-        从文件路径中提取来源标识
-        :param filepath: 文件路径
-        :return: 来源标识
-        """
-        filepath_lower = filepath.lower()
-        
-        # 预印本 / Sci-Hub / LibGen 等来源标签已移除，这里仅区分 OA 与 non_oa
-        if 'oa' in filepath_lower:
-            return 'oa'
-        elif 'non_oa' in filepath_lower:
-            return 'non_oa'
-        else:
-            return 'unknown'
+        self.test_mode = test_mode
+
     
     def process_article(
         self,
@@ -176,11 +69,10 @@ class ArticleProcessor:
             'pmid': (article_info or {}).get('pmid')
         }
         
-        # 检查是否已下载
-        if self.recorder.is_downloaded(doi):
+        # 检查是否已下载（测试模式下跳过此检查）
+        if not self.test_mode and self.recorder.is_downloaded(doi):
             logger.info(f"DOI {doi} 已下载，跳过")
-            normalized_doi = self.recorder._normalize_doi(doi)
-            record = self.recorder.downloaded_records.get(normalized_doi)
+            record = self.recorder.downloaded_records.get(doi)
             if record:
                 result['success'] = True
                 result['filepath'] = record.get('filepath')
@@ -191,29 +83,29 @@ class ArticleProcessor:
             return result
         
         try:
-            # 步骤1: 检查OA状态（详细记录过程）
+            # 步骤1: 检查OA状态
             logger.info(f"【OA检查】开始检查DOI {doi} 的OA状态...")
-            oa_status = self.check_oa_status(doi, article_info)
-            result['is_oa'] = oa_status['is_oa']
-            
-            # 详细记录OA检查结果
-            if oa_status.get('oa_info').get('source') is not None:
-                oa_info = oa_status['oa_info']
-                logger.info(f"【OA检查】检查结果 - 来源: {oa_info.get('source', 'unknown')}, "
-                          f"是否OA: {oa_info.get('is_oa', False)}, "
-                          f"是否有URL: {bool(oa_info.get('url'))}")
-            else:
-                logger.info(f"【OA检查】检查结果 - 未找到OA信息，返回非OA结果")
-            
+            pmid = article_info.get('pmid', None) if article_info else None
+            title = article_info.get('title', None) if article_info else None
+            year = article_info.get('year', None)
+            oa_check = self.oa_checker.check_oa(doi, pmid=pmid, title=title)
+            result['is_oa'] = oa_check['is_oa']
+
             # 步骤2: 根据OA状态选择下载策略
-            if oa_status['oa_info'].get('is_oa'):
+            if oa_check.get('is_oa'):
                 # ===== 情况一：文献为 OA =====
-                # 先按照既有流程，通过 OA 下载器（包括 undetected-chromedriver）尝试下载
-                filepath = self.process_oa_article(doi, oa_status['oa_info'], article_info)
+                # 通过 OA 下载器 进行下载
+                filepath = self.oa_downloader.download_oa(
+                    oa_info=oa_check,
+                    doi=doi,
+                    year=year,
+                    title=title,
+                    pmid=pmid
+                )
                 if filepath:
                     result['success'] = True
                     result['filepath'] = filepath
-                    result['source'] = oa_status['oa_info'].get('source')
+                    result['source'] = oa_check.get('source')
                 else:
                     # OA 下载失败后，严格按需求：使用 Google Scholar API 根据标题再尝试一次
                     title = (article_info or {}).get('title')
@@ -286,3 +178,76 @@ class ArticleProcessor:
         
         return result
 
+
+    def _extract_pdf_from_html(
+            self,
+            html_url: str,
+            save_path: Path,
+            doi: Optional[str] = None,
+            year: Optional[str] = None,
+            title: Optional[str] = None
+        ) -> Optional[str]:
+        """
+        从HTML页面提取PDF链接或使用无头浏览器保存为PDF
+        :param html_url: HTML页面URL
+        :param save_path: 保存路径
+        :param doi: 文献DOI（可选，用于Selenium下载）
+        :param year: 年份（可选）
+        :param title: 标题（可选）
+        :return: 提取到的PDF直链URL，失败返回None
+        """
+        try:
+            logger.info(f"从HTML页面提取PDF: {html_url}")
+            headers = {
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+                "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+                "Accept-Language": "en-US,en;q=0.9",
+            }
+            response = requests.get(html_url, headers=headers, timeout=self.timeout, allow_redirects=True)
+            response.raise_for_status()
+            
+            # 检查是否已经是PDF，如果是则直接返回该URL，由调用方负责下载
+            content_type = response.headers.get("Content-Type", "").lower()
+            if "pdf" in content_type:
+                logger.info("页面响应已是PDF内容，直接返回该URL")
+                return html_url
+            
+            # 解析HTML查找PDF链接
+            soup = BeautifulSoup(response.text, 'html.parser')
+            
+            # 查找PDF下载链接
+            pdf_links = []
+            # 查找<a>标签中的PDF链接
+            for link in soup.find_all('a', href=True):
+                href = link.get('href', '')
+                text = link.get_text().lower()
+                
+                # 匹配包含pdf、download、full-text等关键词的链接
+                if ('.pdf' in href.lower() or 
+                    'pdf' in text or 
+                    'download' in text or 
+                    'full-text' in text or
+                    'fulltext' in text):
+                    full_url = urljoin(html_url, href)
+                    if full_url not in pdf_links:
+                        pdf_links.append(full_url)
+            
+            # 查找<iframe>标签中的PDF链接
+            for iframe in soup.find_all('iframe', src=True):
+                src = iframe.get('src', '')
+                if '.pdf' in src.lower() or 'pdf' in src.lower():
+                    full_url = urljoin(html_url, src)
+                    if full_url not in pdf_links:
+                        pdf_links.append(full_url)
+
+            if pdf_links:
+                # 返回第一个候选PDF链接，由调用方负责下载
+                return pdf_links[0]
+            
+            logger.warning("未在HTML页面中找到PDF链接")
+            return None
+            
+        except Exception as e:
+            logger.error(f"从HTML页面提取PDF失败: {e}")
+            return None
+        

@@ -310,3 +310,14 @@ Stacktrace:
 2026-03-22 09:18:53,647 - INFO - uc - ensuring close
 2026-03-22 09:18:53,648 - INFO - uc - ensuring close
 2026-03-22 09:18:53,648 - INFO - uc - ensuring close
+2026-03-26 16:36:53,512 - INFO - __main__ - 主程序启动：Selenium 无头模式=False（环境变量 SELENIUM_HEADLESS，默认 true）
+2026-03-26 16:36:53,513 - INFO - oa_downloader - 使用 undetected-chromedriver 初始化 Chrome
+2026-03-26 16:36:53,525 - WARNING - uc - could not detect version_main.therefore, we are assuming it is chrome 108 or higher
+2026-03-26 16:36:55,137 - INFO - uc - setting properties for headless
+2026-03-26 16:36:55,498 - INFO - download_recorder - 从 download_results.csv 加载了 7692 个已下载记录
+2026-03-26 16:36:56,069 - INFO - download_recorder - 从 download_errors.csv 加载了 17621 个失败记录
+2026-03-26 16:36:56,070 - INFO - oa_downloader - 使用 undetected-chromedriver 初始化 Chrome
+2026-03-26 16:36:56,081 - WARNING - uc - could not detect version_main.therefore, we are assuming it is chrome 108 or higher
+2026-03-26 16:36:56,656 - INFO - uc - setting properties for headless
+2026-03-26 16:37:08,877 - INFO - uc - ensuring close
+2026-03-26 16:37:08,878 - INFO - uc - ensuring close

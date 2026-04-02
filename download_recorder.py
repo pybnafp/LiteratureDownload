@@ -7,7 +7,7 @@ import logging
 import pandas as pd
 from pathlib import Path
 from typing import Set, Optional, Dict
-
+from utils import clean_doi
 # 配置日志
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
@@ -58,7 +58,7 @@ class DownloadRecorder:
                 doi = row.get('doi')
                 if pd.notna(doi) and str(doi).strip():
                     doi = str(doi).strip()
-                    normalized_doi = self._normalize_doi(doi)
+                    normalized_doi = clean_doi(doi)
                     
                     # 检查是否成功下载
                     success = row.get('success', False)
@@ -104,7 +104,7 @@ class DownloadRecorder:
                 doi = row.get('doi')
                 if pd.notna(doi) and str(doi).strip():
                     doi = str(doi).strip()
-                    normalized_doi = self._normalize_doi(doi)
+                    normalized_doi = clean_doi(doi)
                     
                     self.failed_dois.add(normalized_doi)
                     
@@ -131,32 +131,13 @@ class DownloadRecorder:
         # 不再使用JSON文件，保存逻辑由main.py统一处理
         pass
     
-    def _normalize_doi(self, doi: str) -> str:
-        """
-        标准化DOI格式
-        :param doi: 原始DOI
-        :return: 标准化后的DOI
-        """
-        doi = doi.strip()
-        # 移除URL前缀
-        if doi.startswith('http'):
-            if 'doi.org/' in doi:
-                doi = doi.split('doi.org/')[-1]
-            elif 'doi/' in doi:
-                doi = doi.split('doi/')[-1]
-        # 移除查询参数
-        if '?' in doi:
-            doi = doi.split('?')[0]
-        return doi
-    
     def is_downloaded(self, doi: str) -> bool:
         """
         检查DOI是否已下载
         :param doi: 文献DOI
         :return: 是否已下载
         """
-        normalized_doi = self._normalize_doi(doi)
-        return normalized_doi in self.downloaded_dois
+        return doi in self.downloaded_dois
     
     def is_failed(self, doi: str) -> bool:
         """
@@ -164,8 +145,7 @@ class DownloadRecorder:
         :param doi: 文献DOI
         :return: 是否之前失败
         """
-        normalized_doi = self._normalize_doi(doi)
-        return normalized_doi in self.failed_dois
+        return doi in self.failed_dois
     
     def mark_downloaded(self, doi: str, filepath: Optional[str] = None, source: Optional[str] = None, year: Optional[str] = None, 
                         title: Optional[str] = None, journal: Optional[str] = None, author: Optional[str] = None, 
@@ -181,7 +161,7 @@ class DownloadRecorder:
         :param author: 作者（可选）
         :param pmid: PMID（可选）
         """
-        normalized_doi = self._normalize_doi(doi)
+        normalized_doi = clean_doi(doi)
         self.downloaded_dois.add(normalized_doi)
         # 如果之前在失败列表中，移除它
         self.failed_dois.discard(normalized_doi)
@@ -220,7 +200,7 @@ class DownloadRecorder:
         :param pmid: PMID（可选）
         :param source: 尝试的下载方式（可选）
         """
-        normalized_doi = self._normalize_doi(doi)
+        normalized_doi = clean_doi(doi)
         self.failed_dois.add(normalized_doi)
         
         # 保存详细记录
@@ -274,7 +254,7 @@ class DownloadRecorder:
             for record in existing_records:
                 doi = record.get('doi')
                 if doi:
-                    normalized_doi = self._normalize_doi(str(doi))
+                    normalized_doi = clean_doi(str(doi))
                     existing_doi_map[normalized_doi] = record
             
             # 更新或添加新记录
@@ -343,7 +323,7 @@ class DownloadRecorder:
             for r in existing_records:
                 doi = r.get('doi')
                 if doi:
-                    normalized_doi = self._normalize_doi(str(doi))
+                    normalized_doi = clean_doi(str(doi))
                     existing_doi_map[normalized_doi] = r
             
             # 添加或更新当前记录
