@@ -33,3 +33,12 @@ literature_pdfs/google_scholar/*
 
 # 忽略.vscode目录
 .vscode/
+
+# 忽略chromedriver-win64
+chromedriver-win64/
+
+# 忽略.claude
+.claude/
+CLAUDE.md
+
+
